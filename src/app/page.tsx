@@ -1,3 +1,5 @@
+import FadeIn from "./components/FadeIn";
+
 const nav = ["Новости", "Участники", "Лор", "Союзы", "Магазин", "Правила"];
 
 const stats = [
@@ -7,75 +9,100 @@ const stats = [
   { label: "Товаров", value: "3" },
 ];
 
+const cards = [
+  {
+    title: "⚪ White Nation",
+    text: "Порядок, совершенство и строгая дисциплина.",
+  },
+  {
+    title: "⚫ Black Nation",
+    text: "Боль, стойкость и сила, выкованная испытаниями.",
+  },
+  {
+    title: "🏛 Трактир",
+    text: "Место, где начинается путь каждой фигуры.",
+  },
+];
+
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#050505] text-white">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <div className="text-xl font-bold tracking-wide">♟ EgC</div>
+    <main className="min-h-screen overflow-hidden bg-[#050505] text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(120,80,255,0.18),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.08),transparent_30%)]" />
+
+      <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+        <FadeIn>
+          <div className="text-xl font-bold tracking-wide">♟ EgC</div>
+        </FadeIn>
 
         <nav className="hidden gap-5 text-sm text-zinc-300 md:flex">
-          {nav.map((item) => (
-            <a key={item} href="#" className="hover:text-white">
-              {item}
-            </a>
+          {nav.map((item, index) => (
+            <FadeIn key={item} delay={0.1 + index * 0.05}>
+              <a href="#" className="transition hover:text-white">
+                {item}
+              </a>
+            </FadeIn>
           ))}
         </nav>
       </header>
 
-      <section className="mx-auto flex max-w-6xl flex-col items-center px-6 py-24 text-center">
-        <p className="mb-4 text-sm uppercase tracking-[0.4em] text-zinc-500">
-          The Eternal Game of Chess
-        </p>
+      <section className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 py-24 text-center">
+        <FadeIn delay={0.1}>
+          <p className="mb-4 text-sm uppercase tracking-[0.4em] text-zinc-500">
+            The Eternal Game of Chess
+          </p>
+        </FadeIn>
 
-        <h1 className="max-w-4xl text-5xl font-black tracking-tight md:text-7xl">
-          Добро пожаловать в вечную партию
-        </h1>
+        <FadeIn delay={0.2}>
+          <h1 className="max-w-4xl text-5xl font-black tracking-tight md:text-7xl">
+            Добро пожаловать в вечную партию
+          </h1>
+        </FadeIn>
 
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-400">
-          Шахматный клан Pony Town с лором, нациями, рангами, валютой,
-          магазином, событиями и собственной системой управления.
-        </p>
+        <FadeIn delay={0.35}>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-400">
+            Шахматный клан Pony Town с лором, нациями, рангами, валютой,
+            магазином, событиями и собственной системой управления.
+          </p>
+        </FadeIn>
 
-        <div className="mt-10 flex flex-wrap justify-center gap-4">
-          <a className="rounded-2xl bg-white px-7 py-3 font-semibold text-black" href="#">
-            Читать новости
-          </a>
-          <a className="rounded-2xl border border-white/20 px-7 py-3 font-semibold text-white" href="#">
-            Смотреть лор
-          </a>
-        </div>
+        <FadeIn delay={0.5}>
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <a
+              className="rounded-2xl bg-white px-7 py-3 font-semibold text-black transition hover:scale-105"
+              href="#"
+            >
+              Читать новости
+            </a>
+            <a
+              className="rounded-2xl border border-white/20 px-7 py-3 font-semibold text-white transition hover:scale-105 hover:bg-white/10"
+              href="#"
+            >
+              Смотреть лор
+            </a>
+          </div>
+        </FadeIn>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-4 px-6 pb-16 md:grid-cols-4">
-        {stats.map((item) => (
-          <div key={item.label} className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <div className="text-4xl font-black">{item.value}</div>
-            <div className="mt-2 text-sm text-zinc-400">{item.label}</div>
-          </div>
+      <section className="relative z-10 mx-auto grid max-w-6xl gap-4 px-6 pb-16 md:grid-cols-4">
+        {stats.map((item, index) => (
+          <FadeIn key={item.label} delay={0.65 + index * 0.12}>
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-white/5 backdrop-blur transition hover:-translate-y-1 hover:bg-white/10">
+              <div className="text-4xl font-black">{item.value}</div>
+              <div className="mt-2 text-sm text-zinc-400">{item.label}</div>
+            </div>
+          </FadeIn>
         ))}
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-24 md:grid-cols-3">
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-          <h2 className="text-2xl font-bold">⚪ White Nation</h2>
-          <p className="mt-3 text-zinc-400">
-            Порядок, совершенство и строгая дисциплина.
-          </p>
-        </div>
-
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-          <h2 className="text-2xl font-bold">⚫ Black Nation</h2>
-          <p className="mt-3 text-zinc-400">
-            Боль, стойкость и сила, выкованная испытаниями.
-          </p>
-        </div>
-
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-          <h2 className="text-2xl font-bold">🏛 Трактир</h2>
-          <p className="mt-3 text-zinc-400">
-            Место, где начинается путь каждой фигуры.
-          </p>
-        </div>
+      <section className="relative z-10 mx-auto grid max-w-6xl gap-6 px-6 pb-24 md:grid-cols-3">
+        {cards.map((card, index) => (
+          <FadeIn key={card.title} delay={1 + index * 0.15}>
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-white/5 backdrop-blur transition hover:-translate-y-1 hover:bg-white/10">
+              <h2 className="text-2xl font-bold">{card.title}</h2>
+              <p className="mt-3 text-zinc-400">{card.text}</p>
+            </div>
+          </FadeIn>
+        ))}
       </section>
     </main>
   );
