@@ -12,19 +12,31 @@ export default async function NewsPage() {
         Новости EgC
       </h1>
 
-      <div className="grid gap-6">
+      <div className="grid gap-8">
         {news?.map((item) => (
           <div
             key={item.id}
-            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6"
+            className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8"
           >
-            <h2 className="text-2xl font-bold mb-3">
+            <h2 className="text-3xl font-bold mb-4">
               {item.title}
             </h2>
 
-            <p className="text-zinc-300">
+            <p className="text-zinc-300 text-lg leading-8">
               {item.content}
             </p>
+
+            <div className="mt-6 flex justify-between text-sm text-zinc-500">
+              <span>
+                Автор: {item.author || "EgC"}
+              </span>
+
+              <span>
+                {item.created_at
+                  ? new Date(item.created_at).toLocaleDateString("ru-RU")
+                  : ""}
+              </span>
+            </div>
           </div>
         ))}
       </div>
