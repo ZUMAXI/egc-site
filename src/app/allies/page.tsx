@@ -28,7 +28,7 @@ export default async function AlliesPage() {
                   <img
                     src={ally.image_url}
                     alt={ally.name}
-                    className="h-72 w-full object-cover"
+                    className="h-72 max-h-[500px] w-full object-contain bg-black-full object-cover"
                   />
                 ) : null}
 
