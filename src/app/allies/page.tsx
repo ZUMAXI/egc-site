@@ -17,28 +17,38 @@ export default async function AlliesPage() {
           Здесь отображаются союзные проекты и кланы.
         </p>
 
-        <div className="grid gap-6">
+        <div className="grid gap-8">
           {allies && allies.length > 0 ? (
             allies.map((ally) => (
               <article
                 key={ally.id}
-                className="rounded-3xl border border-white/10 bg-white/5 p-8"
+                className="overflow-hidden rounded-3xl border border-white/10 bg-white/5"
               >
-                <div className="mb-3 text-sm text-zinc-500">
-                  Статус: {ally.status || "active"}
-                </div>
-
-                <h2 className="text-3xl font-bold">{ally.name}</h2>
-
-                <p className="mt-4 whitespace-pre-line text-zinc-300">
-                  {ally.description}
-                </p>
-
-                {ally.slogan ? (
-                  <p className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4 text-zinc-300">
-                    {ally.slogan}
-                  </p>
+                {ally.image_url ? (
+                  <img
+                    src={ally.image_url}
+                    alt={ally.name}
+                    className="h-72 w-full object-cover"
+                  />
                 ) : null}
+
+                <div className="p-8">
+                  <div className="mb-3 text-sm text-zinc-500">
+                    Статус: {ally.status || "Союзник"}
+                  </div>
+
+                  <h2 className="text-3xl font-bold">{ally.name}</h2>
+
+                  <p className="mt-4 whitespace-pre-line text-zinc-300">
+                    {ally.description}
+                  </p>
+
+                  {ally.slogan ? (
+                    <p className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4 text-zinc-300">
+                      {ally.slogan}
+                    </p>
+                  ) : null}
+                </div>
               </article>
             ))
           ) : (
