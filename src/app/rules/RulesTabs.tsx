@@ -8,6 +8,7 @@ type Rule = {
   category: string;
   content: string;
   order_number: number;
+  image_url: string;
 };
 
 export default function RulesTabs({ rules }: { rules: Rule[] }) {
@@ -39,11 +40,21 @@ export default function RulesTabs({ rules }: { rules: Rule[] }) {
             Раздел: {activeRule.category || "rules"}
           </div>
 
-          <h2 className="text-3xl font-bold">{activeRule.title}</h2>
+          <h2 className="text-3xl font-bold">
+            {activeRule.title}
+          </h2>
 
           <p className="mt-5 whitespace-pre-line text-lg leading-8 text-zinc-300">
             {activeRule.content}
           </p>
+
+          {activeRule.image_url ? (
+            <img
+              src={activeRule.image_url}
+              alt={activeRule.title}
+              className="mt-6 w-full rounded-2xl bg-black p-2 object-contain"
+            />
+          ) : null}
         </article>
       ) : (
         <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-zinc-400">
