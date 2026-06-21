@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -5,7 +6,15 @@ export const dynamic = "force-dynamic";
 export default async function AlliesPage() {
   const { data: allies } = await supabase
     .from("allies")
-    .select("*")
+    .select(`
+      *,
+      leader:profiles!leader_profile_id (
+        id,
+        nickname,
+        telegram_name,
+        telegram_username
+      )
+    `)
     .order("sort_order", { ascending: true });
 
   return (
@@ -34,7 +43,20 @@ export default async function AlliesPage() {
 
                 <div className="p-8">
                   <div className="mb-3 text-sm text-zinc-500">
-                    Лидер: {ally.leader || "Не указан"}
+                    Лидер:{" "}
+                    {ally.leader ? (
+                      <Link
+                        href={`/members/${ally.leader.id}`}
+                        className="text-white hover:underline"
+                      >
+                        {ally.leader.nickname ||
+                          ally.leader.telegram_name ||
+                          ally.leader.telegram_username ||
+                          "Участник"}
+                      </Link>
+                    ) : (
+                      "Не указан"
+                    )}
                   </div>
 
                   <h2 className="text-3xl font-bold">{ally.name}</h2>

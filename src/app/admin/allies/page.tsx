@@ -9,6 +9,11 @@ export default async function AdminAlliesPage() {
     .select("*")
     .order("sort_order", { ascending: true });
 
+  const { data: profiles } = await supabaseAdmin
+    .from("profiles")
+    .select("id, nickname, telegram_name, telegram_username")
+    .order("id");
+
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
       <div className="mx-auto max-w-5xl">
@@ -18,7 +23,7 @@ export default async function AdminAlliesPage() {
           Создание, редактирование и удаление союзов EgC.
         </p>
 
-        <AdminAlliesForm allies={allies || []} />
+        <AdminAlliesForm allies={allies || []} profiles={profiles || []} />
       </div>
     </main>
   );

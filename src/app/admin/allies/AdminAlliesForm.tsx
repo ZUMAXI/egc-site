@@ -2,12 +2,22 @@
 
 import { useState } from "react";
 
-export default function AdminAlliesForm({ allies }: { allies: any[] }) {
+function getProfileName(profile: any) {
+  return profile.nickname || profile.telegram_name || profile.telegram_username || "Участник";
+}
+
+export default function AdminAlliesForm({
+  allies,
+  profiles,
+}: {
+  allies: any[];
+  profiles: any[];
+}) {
   const [items, setItems] = useState(allies);
   const [editing, setEditing] = useState<any | null>(null);
 
   const [name, setName] = useState("");
-  const [leader, setLeader] = useState("");
+  const [leaderProfileId, setLeaderProfileId] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [sortOrder, setSortOrder] = useState(1);
@@ -17,7 +27,7 @@ export default function AdminAlliesForm({ allies }: { allies: any[] }) {
   function startEdit(item: any) {
     setEditing(item);
     setName(item.name || "");
-    setLeader(item.leader || "");
+    setLeaderProfileId(item.leader_profile_id ? String(item.leader_profile_id) : "");
     setDescription(item.description || "");
     setImageUrl(item.image_url || "");
     setSortOrder(item.sort_order || 1);
@@ -26,7 +36,7 @@ export default function AdminAlliesForm({ allies }: { allies: any[] }) {
   function clearForm() {
     setEditing(null);
     setName("");
-    setLeader("");
+    setLeaderProfileId("");
     setDescription("");
     setImageUrl("");
     setSortOrder(1);
@@ -64,7 +74,7 @@ export default function AdminAlliesForm({ allies }: { allies: any[] }) {
       body: JSON.stringify({
         id: editing?.id,
         name,
-        leader,
+        leader_profile_id: leaderProfileId || null,
         description,
         image_url: imageUrl,
         sort_order: sortOrder,
@@ -97,6 +107,11 @@ export default function AdminAlliesForm({ allies }: { allies: any[] }) {
     }
   }
 
+  function getLeaderName(leaderProfileId: number | null) {
+    const profile = profiles.find((item) => item.id === leaderProfileId);
+    return profile ? getProfileName(profile) : "Не указан";
+  }
+
   return (
     <div className="grid gap-8">
       <div className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-8">
@@ -111,12 +126,23 @@ export default function AdminAlliesForm({ allies }: { allies: any[] }) {
           className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
         />
 
-        <input
-          value={leader}
-          onChange={(event) => setLeader(event.target.value)}
-          placeholder="Лидер / представитель"
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        />
+        <label className="grid gap-2">
+          <span className="text-sm text-zinc-400">Лидер союза</span>
+
+          <select
+            value={leaderProfileId}
+            onChange={(event) => setLeaderProfileId(event.target.value)}
+            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+          >
+            <option value="">Не указан</option>
+
+            {profiles.map((profile) => (
+              <option key={profile.id} value={profile.id}>
+                {getProfileName(profile)}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <label className="grid gap-2">
           <span className="text-sm text-zinc-400">Порядок отображения</span>
@@ -220,7 +246,7 @@ export default function AdminAlliesForm({ allies }: { allies: any[] }) {
             <h3 className="mt-2 text-2xl font-bold">{item.name}</h3>
 
             <p className="mt-2 text-sm text-zinc-500">
-              Лидер: {item.leader || "Не указан"}
+              Лидер: {getLeaderName(item.leader_profile_id)}
             </p>
 
             <p className="mt-4 whitespace-pre-line text-zinc-300">
