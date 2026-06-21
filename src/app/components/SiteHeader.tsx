@@ -8,6 +8,7 @@ const nav = [
   { label: "Союзы", href: "/allies" },
   { label: "Магазин", href: "/shop" },
   { label: "Правила", href: "/rules" },
+  { label: "События", href: "/events" },
 ];
 
 export default function SiteHeader() {
