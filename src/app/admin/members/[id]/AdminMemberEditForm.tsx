@@ -20,6 +20,19 @@ const positions = [
 
 const accessRoles = ["guest", "member", "admin", "host"];
 
+const rewards = [
+  { label: "Набор", steps: 5, moves: 0 },
+  { label: "Обход", steps: 10, moves: 0 },
+  { label: "Тренировка", steps: 10, moves: 1 },
+  { label: "РПБ", steps: 10, moves: 1 },
+  { label: "Посиделки", steps: 5, moves: 0 },
+  { label: "Союз", steps: 20, moves: 10 },
+  { label: "1 человек", steps: 2, moves: 0 },
+  { label: "Арт", steps: 0, moves: 5 },
+  { label: "Видео", steps: 0, moves: 10 },
+  { label: "Мем", steps: 0, moves: 3 },
+];
+
 export default function AdminMemberEditForm({
   profile,
   currentAccessRole,
@@ -146,25 +159,55 @@ export default function AdminMemberEditForm({
         </select>
       </label>
 
-      <label className="grid gap-2">
-        <span className="text-sm text-zinc-400">Шаги</span>
-        <input
-          type="number"
-          value={steps}
-          onChange={(event) => setSteps(Number(event.target.value))}
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        />
-      </label>
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="grid gap-2">
+          <span className="text-sm text-zinc-400">Шаги</span>
+          <input
+            type="number"
+            value={steps}
+            onChange={(event) => setSteps(Number(event.target.value))}
+            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+          />
+        </label>
 
-      <label className="grid gap-2">
-        <span className="text-sm text-zinc-400">Ходы</span>
-        <input
-          type="number"
-          value={moves}
-          onChange={(event) => setMoves(Number(event.target.value))}
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        />
-      </label>
+        <label className="grid gap-2">
+          <span className="text-sm text-zinc-400">Ходы</span>
+          <input
+            type="number"
+            value={moves}
+            onChange={(event) => setMoves(Number(event.target.value))}
+            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+          />
+        </label>
+      </div>
+
+      <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
+        <h3 className="mb-4 text-2xl font-bold">Начислить награду</h3>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          {rewards.map((reward) => (
+            <button
+              key={reward.label}
+              type="button"
+              onClick={() => {
+                setSteps((value: number) => value + reward.steps);
+                setMoves((value: number) => value + reward.moves);
+              }}
+              className="rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition hover:bg-white/10"
+            >
+              <div className="font-bold">{reward.label}</div>
+
+              <div className="mt-1 text-sm text-zinc-400">
+                +{reward.steps} шаг. / +{reward.moves} ход.
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <p className="mt-4 text-sm text-zinc-500">
+          После начисления не забудь нажать «Сохранить».
+        </p>
+      </div>
 
       <div className="flex flex-wrap gap-3">
         <button
