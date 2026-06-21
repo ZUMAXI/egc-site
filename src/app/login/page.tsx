@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Script from "next/script";
+import TelegramLoginButton from "./TelegramLoginButton";
 
 export default function LoginPage() {
   return (
@@ -15,7 +15,7 @@ export default function LoginPage() {
           <h2 className="text-3xl font-bold">Telegram аккаунт</h2>
 
           <p className="mt-4 text-zinc-300">
-            Сначала открой бота и нажми Start, потом войди через Telegram.
+            Сначала открой бота и нажми Start, потом нажми кнопку входа ниже.
           </p>
 
           <Link
@@ -27,13 +27,7 @@ export default function LoginPage() {
           </Link>
 
           <div className="mt-8">
-            <Script
-              async
-              src="https://telegram.org/js/telegram-widget.js?22"
-              data-telegram-login="egc_account_bot"
-              data-size="large"
-              data-auth-url="https://egc-site.vercel.app/api/auth/telegram"
-            />
+            <TelegramLoginButton />
           </div>
         </div>
       </div>
