@@ -10,6 +10,7 @@ const nav = [
   { label: "Магазин", href: "/shop" },
   { label: "Правила", href: "/rules" },
   { label: "События", href: "/events" },
+  { label: "Админ", href: "/admin" },
 ];
 
 export default async function SiteHeader() {
