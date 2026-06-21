@@ -9,6 +9,7 @@ const nav = [
   { label: "Магазин", href: "/shop" },
   { label: "Правила", href: "/rules" },
   { label: "События", href: "/events" },
+  { label: "Вход", href: "/login" },
 ];
 
 export default function SiteHeader() {
