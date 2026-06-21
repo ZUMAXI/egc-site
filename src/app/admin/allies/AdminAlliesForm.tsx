@@ -3,7 +3,12 @@
 import { useState } from "react";
 
 function getProfileName(profile: any) {
-  return profile.nickname || profile.telegram_name || profile.telegram_username || "Участник";
+  return (
+    profile.nickname ||
+    profile.telegram_name ||
+    profile.telegram_username ||
+    "Участник"
+  );
 }
 
 export default function AdminAlliesForm({
@@ -17,6 +22,7 @@ export default function AdminAlliesForm({
   const [editing, setEditing] = useState<any | null>(null);
 
   const [name, setName] = useState("");
+  const [status, setStatus] = useState("🤝 Союз");
   const [leaderProfileId, setLeaderProfileId] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -27,7 +33,10 @@ export default function AdminAlliesForm({
   function startEdit(item: any) {
     setEditing(item);
     setName(item.name || "");
-    setLeaderProfileId(item.leader_profile_id ? String(item.leader_profile_id) : "");
+    setStatus(item.status || "🤝 Союз");
+    setLeaderProfileId(
+      item.leader_profile_id ? String(item.leader_profile_id) : ""
+    );
     setDescription(item.description || "");
     setImageUrl(item.image_url || "");
     setSortOrder(item.sort_order || 1);
@@ -36,6 +45,7 @@ export default function AdminAlliesForm({
   function clearForm() {
     setEditing(null);
     setName("");
+    setStatus("🤝 Союз");
     setLeaderProfileId("");
     setDescription("");
     setImageUrl("");
@@ -74,6 +84,7 @@ export default function AdminAlliesForm({
       body: JSON.stringify({
         id: editing?.id,
         name,
+        status,
         leader_profile_id: leaderProfileId || null,
         description,
         image_url: imageUrl,
@@ -125,6 +136,22 @@ export default function AdminAlliesForm({
           placeholder="Название союза"
           className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
         />
+
+        <label className="grid gap-2">
+          <span className="text-sm text-zinc-400">Статус союза</span>
+
+          <select
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+          >
+            <option>🤝 Союз</option>
+            <option>🧊 Заморозка</option>
+            <option>❌ Закрыт</option>
+            <option>⚔️ Война</option>
+            <option>⭐ Особый союз</option>
+          </select>
+        </label>
 
         <label className="grid gap-2">
           <span className="text-sm text-zinc-400">Лидер союза</span>
@@ -244,6 +271,10 @@ export default function AdminAlliesForm({
             </div>
 
             <h3 className="mt-2 text-2xl font-bold">{item.name}</h3>
+
+            <p className="mt-2 text-sm text-zinc-500">
+              Статус: {item.status || "🤝 Союз"}
+            </p>
 
             <p className="mt-2 text-sm text-zinc-500">
               Лидер: {getLeaderName(item.leader_profile_id)}

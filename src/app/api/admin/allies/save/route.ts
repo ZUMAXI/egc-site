@@ -6,6 +6,7 @@ export async function POST(request: NextRequest) {
 
   const data = {
     name: body.name || null,
+    status: body.status || "🤝 Союз",
     description: body.description || null,
     image_url: body.image_url || null,
     sort_order: Number(body.sort_order || 1),
