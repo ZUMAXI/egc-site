@@ -9,9 +9,7 @@ export default async function ProfilePage() {
   const cookieStore = await cookies();
   const telegramId = cookieStore.get("egc_user")?.value;
 
-  if (!telegramId) {
-    redirect("/login");
-  }
+  if (!telegramId) redirect("/login");
 
   const { data: profile } = await supabaseAdmin
     .from("profiles")
@@ -19,9 +17,7 @@ export default async function ProfilePage() {
     .eq("telegram_id", telegramId)
     .single();
 
-  if (!profile) {
-    redirect("/login");
-  }
+  if (!profile) redirect("/login");
 
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
@@ -47,13 +43,13 @@ export default async function ProfilePage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-              <div className="text-sm text-zinc-500">Роль</div>
-              <div className="font-bold">{profile.role}</div>
+              <div className="text-sm text-zinc-500">Должность</div>
+              <div className="font-bold">{profile.position || "Guest"}</div>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-              <div className="text-sm text-zinc-500">Статус</div>
-              <div className="font-bold">{profile.status}</div>
+              <div className="text-sm text-zinc-500">Доступ</div>
+              <div className="font-bold">{profile.access_role || "guest"}</div>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
