@@ -1,5 +1,6 @@
 "use client";
 
+import Script from "next/script";
 import { useState } from "react";
 
 declare global {
@@ -8,6 +9,7 @@ declare global {
       WebApp?: {
         initData: string;
         ready: () => void;
+        expand: () => void;
       };
     };
   }
@@ -19,10 +21,13 @@ export default function TelegramLoginButton() {
   async function login() {
     setLoading(true);
 
+    window.Telegram?.WebApp?.ready();
+    window.Telegram?.WebApp?.expand();
+
     const initData = window.Telegram?.WebApp?.initData;
 
     if (!initData) {
-      alert("Открой сайт через кнопку бота Telegram.");
+      alert("Открой сайт через кнопку Open в боте Telegram.");
       setLoading(false);
       return;
     }
@@ -44,12 +49,16 @@ export default function TelegramLoginButton() {
   }
 
   return (
-    <button
-      onClick={login}
-      disabled={loading}
-      className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
-    >
-      {loading ? "Входим..." : "Войти через Telegram"}
-    </button>
+    <>
+      <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
+
+      <button
+        onClick={login}
+        disabled={loading}
+        className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
+      >
+        {loading ? "Входим..." : "Войти через Telegram"}
+      </button>
+    </>
   );
 }
