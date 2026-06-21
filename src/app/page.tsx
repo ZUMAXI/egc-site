@@ -1,15 +1,6 @@
 import Link from "next/link";
 import FadeIn from "./components/FadeIn";
 
-const nav = [
-  { label: "Новости", href: "/news" },
-  { label: "Участники", href: "/members" },
-  { label: "Лор", href: "/lore" },
-  { label: "Союзы", href: "/allies" },
-  { label: "Магазин", href: "/shop" },
-  { label: "Правила", href: "/rules" },
-];
-
 const stats = [
   { label: "Администрация", value: "7" },
   { label: "Глав лора", value: "3" },
@@ -36,27 +27,6 @@ export default function Home() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#050505] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(120,80,255,0.18),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.08),transparent_30%)]" />
-
-      <header className="relative z-10 mx-auto flex max-w-6xl flex-col gap-5 px-6 py-6 md:flex-row md:items-center md:justify-between">
-    <FadeIn>
-      <Link href="/" className="text-xl font-bold tracking-wide">
-       ♟ EgC
-     </Link>
-   </FadeIn>
-
-   <nav className="flex flex-wrap gap-3 text-sm text-zinc-300 md:gap-5">
-     {nav.map((item, index) => (
-       <FadeIn key={item.href} delay={0.1 + index * 0.05}>
-         <Link
-           href={item.href}
-           className="rounded-full border border-white/10 bg-white/5 px-3 py-2 transition hover:bg-white/10 hover:text-white md:border-0 md:bg-transparent md:px-0 md:py-0"
-         >
-            {item.label}
-         </Link>
-        </FadeIn>
-     ))}
-   </nav>
-      </header>
 
       <section className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 py-24 text-center">
         <FadeIn delay={0.1}>
