@@ -1,42 +1,78 @@
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+
+export const dynamic = "force-dynamic";
 
 export default async function MembersPage() {
-  const { data: members } = await supabase
-    .from("members")
+  const { data: profiles } = await supabaseAdmin
+    .from("profiles")
     .select("*")
     .order("id");
 
   return (
-    <main className="min-h-screen bg-black text-white p-10">
-      <h1 className="text-5xl font-bold mb-10">
-        Администрация EgC
-      </h1>
+    <main className="min-h-screen bg-black px-6 py-12 text-white">
+      <div className="mx-auto max-w-6xl">
+        <h1 className="mb-3 text-5xl font-black">Участники EgC</h1>
 
-      <div className="grid gap-6">
-        {members?.map((member) => (
-          <div
-            key={member.id}
-            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6"
-          >
-            <h2 className="text-2xl font-bold">
-              {member.nickname}
-            </h2>
+        <p className="mb-10 text-zinc-400">
+          Здесь отображаются пользователи, которые вошли через Telegram.
+        </p>
 
-            <p className="text-zinc-400">
-              {member.telegram}
-            </p>
+        <div className="grid gap-6 md:grid-cols-3">
+          {profiles && profiles.length > 0 ? (
+            profiles.map((profile) => (
+              <article
+                key={profile.id}
+                className="rounded-3xl border border-white/10 bg-white/5 p-6"
+              >
+                {profile.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.nickname}
+                    className="mb-5 h-24 w-24 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-white/10 text-4xl">
+                    ♟
+                  </div>
+                )}
 
-            <div className="mt-4 flex gap-4 text-sm">
-              <span>Nation: {member.nation}</span>
-              <span>Rank: {member.rank}</span>
-              <span>Position: {member.position}</span>
+                <h2 className="text-2xl font-bold">
+                  {profile.nickname || profile.telegram_name || "Участник"}
+                </h2>
+
+                <p className="mt-1 text-zinc-400">
+                  @{profile.telegram_username || "telegram"}
+                </p>
+
+                <div className="mt-5 grid gap-3 text-sm">
+                  <div className="rounded-2xl bg-black/30 p-3">
+                    Роль: <span className="text-white">{profile.role}</span>
+                  </div>
+
+                  <div className="rounded-2xl bg-black/30 p-3">
+                    Статус: <span className="text-white">{profile.status}</span>
+                  </div>
+
+                  <div className="rounded-2xl bg-black/30 p-3">
+                    Шаги: <span className="text-white">{profile.steps}</span>
+                  </div>
+
+                  <div className="rounded-2xl bg-black/30 p-3">
+                    Ходы: <span className="text-white">{profile.moves}</span>
+                  </div>
+                </div>
+
+                <p className="mt-5 line-clamp-3 text-zinc-400">
+                  {profile.bio || "Описание пока не заполнено."}
+                </p>
+              </article>
+            ))
+          ) : (
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-zinc-400 md:col-span-3">
+              Участников пока нет.
             </div>
-
-            <div className="mt-2 text-zinc-500">
-              Steps: {member.steps} | Moves: {member.moves}
-            </div>
-          </div>
-        ))}
+          )}
+        </div>
       </div>
     </main>
   );
