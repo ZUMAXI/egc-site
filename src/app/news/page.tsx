@@ -9,24 +9,36 @@ export default async function NewsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main className="min-h-screen bg-black text-white p-10">
-      <h1 className="text-5xl font-bold mb-10">Новости EgC</h1>
+    <main className="min-h-screen bg-black p-10 text-white">
+      <h1 className="mb-10 text-5xl font-bold">Новости EgC</h1>
 
       <div className="grid gap-8">
         {news && news.length > 0 ? (
           news.map((item) => (
             <div
               key={item.id}
-              className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8"
+              className="rounded-3xl border border-zinc-800 bg-zinc-900 p-8"
             >
-              <h2 className="text-3xl font-bold mb-4">{item.title}</h2>
+              {item.image_url ? (
+                <img
+                  src={item.image_url}
+                  alt={item.title}
+                  className="mb-6 max-h-[500px] w-full rounded-3xl bg-black object-contain"
+                />
+              ) : null}
 
-              <p className="text-zinc-300 text-lg leading-8 whitespace-pre-line">
+              <h2 className="mb-4 text-3xl font-bold">
+                {item.title}
+              </h2>
+
+              <p className="whitespace-pre-line text-lg leading-8 text-zinc-300">
                 {item.content}
               </p>
 
               <div className="mt-6 flex justify-between text-sm text-zinc-500">
-                <span>Автор: {item.author || "EgC"}</span>
+                <span>
+                  Автор: {item.author || "EgC"}
+                </span>
 
                 <span>
                   {item.created_at
