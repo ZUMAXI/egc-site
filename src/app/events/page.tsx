@@ -4,13 +4,13 @@ import EventsTabs from "./EventsTabs";
 export const dynamic = "force-dynamic";
 
 const schedule = [
-  { day: "Понедельник", time: "21:00 — 21:40", name: "Набор" },
-  { day: "Вторник", time: "—", name: "Отдых" },
-  { day: "Среда", time: "21:00", name: "Обход / после набор" },
-  { day: "Четверг", time: "—", name: "Отдых" },
-  { day: "Пятница", time: "—", name: "Отдых" },
-  { day: "Суббота", time: "20:30", name: "РПБ" },
-  { day: "Воскресенье", time: "20:00", name: "Тренировка" },
+  { day: "Понедельник", time: "21:00 — 21:40", name: "Набор", accent: "bg-sky-500/15 text-sky-300" },
+  { day: "Вторник", time: "—", name: "Отдых", accent: "bg-zinc-500/15 text-zinc-300" },
+  { day: "Среда", time: "21:00", name: "Обход / после набор", accent: "bg-violet-500/15 text-violet-300" },
+  { day: "Четверг", time: "—", name: "Отдых", accent: "bg-zinc-500/15 text-zinc-300" },
+  { day: "Пятница", time: "—", name: "Отдых", accent: "bg-zinc-500/15 text-zinc-300" },
+  { day: "Суббота", time: "20:30", name: "РПБ", accent: "bg-yellow-500/15 text-yellow-300" },
+  { day: "Воскресенье", time: "20:00", name: "Тренировка", accent: "bg-emerald-500/15 text-emerald-300" },
 ];
 
 export default async function EventsPage() {
@@ -28,37 +28,53 @@ export default async function EventsPage() {
           Сборы, РПБ, тренировки, обходы и другие активности клана.
         </p>
 
-        <section className="mb-12 rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl shadow-white/5 backdrop-blur">
-          <div className="mb-8 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <section className="mb-12 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-white/5 backdrop-blur md:p-8">
+          <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.35em] text-zinc-500">
-                Weekly schedule
+              <h2 className="text-4xl font-black">Расписание недели</h2>
+              <p className="mt-2 text-zinc-400">
+                Основные активности клана по дням.
               </p>
-              <h2 className="mt-2 text-4xl font-black">Расписание недели</h2>
             </div>
 
-            <p className="text-sm text-zinc-500">
-              Время указано по МСК
-            </p>
+            <div className="rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-zinc-400">
+              Время по МСК
+            </div>
           </div>
 
           <div className="grid gap-3">
             {schedule.map((item) => (
               <div
                 key={item.day}
-                className="grid gap-3 rounded-2xl border border-white/10 bg-black/30 p-4 transition hover:bg-white/10 md:grid-cols-[180px_180px_1fr] md:items-center"
+                className="grid gap-4 rounded-2xl border border-white/10 bg-black/30 p-4 transition hover:-translate-y-0.5 hover:bg-white/10 md:grid-cols-[180px_180px_1fr] md:items-center"
               >
-                <div className="font-bold text-white">{item.day}</div>
+                <div className={`w-fit rounded-full px-4 py-2 font-bold ${item.accent}`}>
+                  {item.day}
+                </div>
 
-                <div className="font-mono text-zinc-400">{item.time}</div>
+                <div className="w-fit rounded-full border border-white/10 bg-white/5 px-4 py-2 font-mono text-sm text-zinc-300">
+                  {item.time}
+                </div>
 
-                <div className="text-zinc-200">{item.name}</div>
+                <div className="text-lg font-semibold text-white">
+                  {item.name}
+                </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-8 rounded-2xl border border-white/10 bg-black/30 p-5 text-center text-sm text-zinc-400">
-            Мы встречаемся на 2РУ. Расписание может меняться.
+          <div className="mt-8 grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-zinc-400">
+              📍 Все мероприятия проходят на <span className="text-white">2РУ</span>.
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-zinc-400">
+              🕒 Время указано по <span className="text-white">МСК</span>.
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-zinc-400">
+              ⚠️ Расписание может <span className="text-white">меняться</span>.
+            </div>
           </div>
         </section>
 
