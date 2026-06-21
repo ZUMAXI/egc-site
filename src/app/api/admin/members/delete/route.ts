@@ -16,27 +16,13 @@ export async function POST(request: NextRequest) {
     .eq("telegram_id", telegramId)
     .single();
 
-  const currentAccessRole = currentUser?.access_role || "guest";
-
-  if (currentAccessRole !== "host" && currentAccessRole !== "admin") {
-    return NextResponse.json({ error: "No access" }, { status: 403 });
+  if (currentUser?.access_role !== "host") {
+    return NextResponse.json({ error: "Only host can delete" }, { status: 403 });
   }
 
   const body = await request.json();
 
-  const updateData: any = {
-    position: body.position,
-    steps: body.steps,
-    moves: body.moves,
-    bio: body.bio,
-    avatar_url: body.avatar_url,
-  };
-
-  if (currentAccessRole === "host") {
-    updateData.access_role = body.access_role;
-  }
-
-  await supabaseAdmin.from("profiles").update(updateData).eq("id", body.id);
+  await supabaseAdmin.from("profiles").delete().eq("id", body.id);
 
   return NextResponse.json({ ok: true });
 }
