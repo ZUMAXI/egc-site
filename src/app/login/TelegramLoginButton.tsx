@@ -1,27 +1,55 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useState } from "react";
+
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp?: {
+        initData: string;
+        ready: () => void;
+      };
+    };
+  }
+}
 
 export default function TelegramLoginButton() {
-  const ref = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (!ref.current) return;
+  async function login() {
+    setLoading(true);
 
-    ref.current.innerHTML = "";
+    const initData = window.Telegram?.WebApp?.initData;
 
-    const script = document.createElement("script");
-    script.src = "https://telegram.org/js/telegram-widget.js?22";
-    script.async = true;
-    script.setAttribute("data-telegram-login", "egc_account_bot");
-    script.setAttribute("data-size", "large");
-    script.setAttribute(
-      "data-auth-url",
-      "https://egc-site.vercel.app/api/auth/telegram"
-    );
+    if (!initData) {
+      alert("Открой сайт через кнопку бота Telegram.");
+      setLoading(false);
+      return;
+    }
 
-    ref.current.appendChild(script);
-  }, []);
+    const res = await fetch("/api/auth/telegram", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ initData }),
+    });
 
-  return <div ref={ref} />;
+    if (res.ok) {
+      window.location.href = "/profile";
+    } else {
+      alert("Ошибка входа через Telegram.");
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={login}
+      disabled={loading}
+      className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
+    >
+      {loading ? "Входим..." : "Войти через Telegram"}
+    </button>
+  );
 }
