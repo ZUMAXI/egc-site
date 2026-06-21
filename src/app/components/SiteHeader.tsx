@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
 
 const nav = [
@@ -9,10 +10,12 @@ const nav = [
   { label: "Магазин", href: "/shop" },
   { label: "Правила", href: "/rules" },
   { label: "События", href: "/events" },
-  { label: "Вход", href: "/login" },
 ];
 
-export default function SiteHeader() {
+export default async function SiteHeader() {
+  const cookieStore = await cookies();
+  const isLoggedIn = Boolean(cookieStore.get("egc_user")?.value);
+
   return (
     <header className="mx-auto mb-10 flex max-w-6xl flex-col gap-5 px-6 pt-6 md:flex-row md:items-center md:justify-between">
       <Link href="/" className="text-xl font-bold tracking-wide text-white">
@@ -29,6 +32,13 @@ export default function SiteHeader() {
             {item.label}
           </Link>
         ))}
+
+        <Link
+          href={isLoggedIn ? "/profile" : "/login"}
+          className="rounded-full border border-white/10 bg-white px-3 py-2 font-bold text-black transition hover:scale-105"
+        >
+          {isLoggedIn ? "Профиль" : "Вход"}
+        </Link>
       </nav>
     </header>
   );
