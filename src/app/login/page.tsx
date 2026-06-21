@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Script from "next/script";
 
 export default function LoginPage() {
@@ -14,9 +15,16 @@ export default function LoginPage() {
           <h2 className="text-3xl font-bold">Telegram аккаунт</h2>
 
           <p className="mt-4 text-zinc-300">
-            После входа сайт автоматически создаст тебе профиль со статусом
-            guest.
+            Сначала открой бота и нажми Start, потом войди через Telegram.
           </p>
+
+          <Link
+            href="https://t.me/egc_account_bot"
+            target="_blank"
+            className="mt-6 inline-block rounded-2xl border border-white/10 bg-white/5 px-6 py-3 font-bold text-white hover:bg-white/10"
+          >
+            Открыть бота
+          </Link>
 
           <div className="mt-8">
             <Script
@@ -25,7 +33,6 @@ export default function LoginPage() {
               data-telegram-login="egc_account_bot"
               data-size="large"
               data-auth-url="https://egc-site.vercel.app/api/auth/telegram"
-              data-request-access="write"
             />
           </div>
         </div>
