@@ -6,7 +6,7 @@ export default async function AlliesPage() {
   const { data: allies } = await supabase
     .from("allies")
     .select("*")
-    .order("id");
+    .order("sort_order", { ascending: true });
 
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
@@ -28,13 +28,13 @@ export default async function AlliesPage() {
                   <img
                     src={ally.image_url}
                     alt={ally.name}
-                    className="max-h-[500px] w-full object-contain bg-black"
+                    className="max-h-[500px] w-full bg-black object-contain"
                   />
                 ) : null}
 
                 <div className="p-8">
                   <div className="mb-3 text-sm text-zinc-500">
-                    Статус: {ally.status || "Союзник"}
+                    Лидер: {ally.leader || "Не указан"}
                   </div>
 
                   <h2 className="text-3xl font-bold">{ally.name}</h2>
@@ -42,12 +42,6 @@ export default async function AlliesPage() {
                   <p className="mt-4 whitespace-pre-line text-zinc-300">
                     {ally.description}
                   </p>
-
-                  {ally.slogan ? (
-                    <p className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4 text-zinc-300">
-                      {ally.slogan}
-                    </p>
-                  ) : null}
                 </div>
               </article>
             ))
