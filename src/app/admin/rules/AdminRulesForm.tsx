@@ -8,21 +8,21 @@ export default function AdminRulesForm({ rules }: { rules: any[] }) {
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [sortOrder, setSortOrder] = useState(0);
+  const [sortOrder, setSortOrder] = useState(1);
   const [saving, setSaving] = useState(false);
 
   function startEdit(rule: any) {
     setEditing(rule);
     setTitle(rule.title || "");
     setContent(rule.content || "");
-    setSortOrder(rule.sort_order || 0);
+    setSortOrder(rule.sort_order || 1);
   }
 
   function clearForm() {
     setEditing(null);
     setTitle("");
     setContent("");
-    setSortOrder(0);
+    setSortOrder(1);
   }
 
   async function saveRule() {
@@ -30,7 +30,9 @@ export default function AdminRulesForm({ rules }: { rules: any[] }) {
 
     const res = await fetch("/api/admin/rules/save", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         id: editing?.id,
         title,
@@ -52,7 +54,9 @@ export default function AdminRulesForm({ rules }: { rules: any[] }) {
 
     const res = await fetch("/api/admin/rules/delete", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ id }),
     });
 
@@ -77,13 +81,20 @@ export default function AdminRulesForm({ rules }: { rules: any[] }) {
           className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
         />
 
-        <input
-          type="number"
-          value={sortOrder}
-          onChange={(event) => setSortOrder(Number(event.target.value))}
-          placeholder="Порядок"
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        />
+        <label className="grid gap-2">
+          <span className="text-sm text-zinc-400">
+            Порядок отображения
+          </span>
+
+          <input
+            type="number"
+            min={1}
+            value={sortOrder}
+            onChange={(event) => setSortOrder(Number(event.target.value))}
+            placeholder="Например: 1"
+            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+          />
+        </label>
 
         <textarea
           value={content}
@@ -120,12 +131,14 @@ export default function AdminRulesForm({ rules }: { rules: any[] }) {
             className="rounded-3xl border border-white/10 bg-white/5 p-6"
           >
             <div className="text-sm text-zinc-500">
-              Порядок: {rule.sort_order || 0}
+              Порядок: {rule.sort_order || 1}
             </div>
 
-            <h3 className="mt-2 text-2xl font-bold">{rule.title}</h3>
+            <h3 className="mt-2 text-2xl font-bold">
+              {rule.title}
+            </h3>
 
-            <p className="mt-4 line-clamp-4 whitespace-pre-line text-zinc-300">
+            <p className="mt-4 whitespace-pre-line text-zinc-300">
               {rule.content}
             </p>
 
