@@ -66,6 +66,13 @@ export default async function ProfilePage() {
             </div>
           </div>
 
+          <a
+            href="/profile/edit"
+            className="mt-6 inline-block rounded-2xl bg-white px-6 py-3 font-bold text-black transition hover:scale-105"
+          >
+            Редактировать профиль
+          </a>
+
           <p className="mt-6 whitespace-pre-line text-zinc-300">
             {profile.bio || "Описание профиля пока не заполнено."}
           </p>
