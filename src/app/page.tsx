@@ -14,7 +14,7 @@ const stats = [
   { label: "Администрация", value: "7" },
   { label: "Глав лора", value: "3" },
   { label: "Валюты", value: "2" },
-  { label: "Товаров", value: "3" },
+  { label: "Товаров", value: "4" },
 ];
 
 const cards = [
