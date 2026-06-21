@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import LogoutButton from "./LogoutButton";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +73,8 @@ export default async function ProfilePage() {
           >
             Редактировать профиль
           </a>
+
+          <LogoutButton />
 
           <p className="mt-6 whitespace-pre-line text-zinc-300">
             {profile.bio || "Описание профиля пока не заполнено."}
