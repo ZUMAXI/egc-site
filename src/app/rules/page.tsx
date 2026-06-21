@@ -7,7 +7,7 @@ export default async function RulesPage() {
   const { data: rules } = await supabase
     .from("rules")
     .select("*")
-    .order("order_number", { ascending: true });
+    .order("sort_order", { ascending: true });
 
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
