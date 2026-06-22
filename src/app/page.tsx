@@ -1,12 +1,8 @@
 import Link from "next/link";
 import FadeIn from "./components/FadeIn";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-const stats = [
-  { label: "Администрация", value: "7" },
-  { label: "Глав лора", value: "3" },
-  { label: "Валюты", value: "2" },
-  { label: "Товаров", value: "4" },
-];
+export const dynamic = "force-dynamic";
 
 const cards = [
   {
@@ -23,7 +19,32 @@ const cards = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const [
+    members,
+    news,
+    lore,
+    allies,
+    shop,
+    events,
+  ] = await Promise.all([
+    supabaseAdmin.from("profiles").select("*", { count: "exact", head: true }),
+    supabaseAdmin.from("news").select("*", { count: "exact", head: true }),
+    supabaseAdmin.from("lore").select("*", { count: "exact", head: true }),
+    supabaseAdmin.from("allies").select("*", { count: "exact", head: true }),
+    supabaseAdmin.from("shop_items").select("*", { count: "exact", head: true }),
+    supabaseAdmin.from("events").select("*", { count: "exact", head: true }),
+  ]);
+
+  const stats = [
+    { label: "Участников", value: members.count || 0 },
+    { label: "Новостей", value: news.count || 0 },
+    { label: "Глав лора", value: lore.count || 0 },
+    { label: "Союзов", value: allies.count || 0 },
+    { label: "Товаров", value: shop.count || 0 },
+    { label: "Событий", value: events.count || 0 },
+  ];
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#050505] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,rgba(120,80,255,0.18),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.08),transparent_30%)]" />
@@ -67,9 +88,9 @@ export default function Home() {
         </FadeIn>
       </section>
 
-      <section className="relative z-10 mx-auto grid max-w-6xl gap-4 px-6 pb-16 md:grid-cols-4">
+      <section className="relative z-10 mx-auto grid max-w-6xl gap-4 px-6 pb-16 md:grid-cols-3">
         {stats.map((item, index) => (
-          <FadeIn key={item.label} delay={0.65 + index * 0.12}>
+          <FadeIn key={item.label} delay={0.65 + index * 0.08}>
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-white/5 backdrop-blur transition hover:-translate-y-1 hover:bg-white/10">
               <div className="text-4xl font-black">{item.value}</div>
               <div className="mt-2 text-sm text-zinc-400">{item.label}</div>
