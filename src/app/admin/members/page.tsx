@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import ProfileAvatar from "../../components/ProfileAvatar";
 import ProfileBadges from "../../components/ProfileBadges";
+import AdminBackButton from "../components/AdminBackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,8 @@ export default async function AdminMembersPage() {
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
       <div className="mx-auto max-w-5xl">
+        <AdminBackButton />
+        
         <h1 className="mb-3 text-5xl font-black">
           Управление участниками
         </h1>
