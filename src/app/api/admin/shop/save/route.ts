@@ -1,7 +1,21 @@
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(request: NextRequest) {
+  const cookieStore = await cookies();
+  const telegramId = cookieStore.get("egc_user")?.value;
+
+  if (!telegramId) {
+    return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+  }
+
+  const { data: currentUser } = await supabaseAdmin
+    .from("profiles")
+    .select("nickname, telegram_name, telegram_username")
+    .eq("telegram_id", telegramId)
+    .single();
+
   const body = await request.json();
 
   const data = {
@@ -24,6 +38,19 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+
+  const adminName =
+    currentUser?.nickname ||
+    currentUser?.telegram_name ||
+    currentUser?.telegram_username ||
+    "Администратор";
+
+  await supabaseAdmin.from("admin_logs").insert({
+    admin_name: adminName,
+    action: body.id
+      ? `Изменил товар "${body.name}"`
+      : `Создал товар "${body.name}"`,
+  });
 
   return NextResponse.json({ ok: true });
 }
