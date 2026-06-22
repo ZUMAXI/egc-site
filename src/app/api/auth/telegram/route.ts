@@ -53,19 +53,40 @@ export async function POST(request: NextRequest) {
   }
 
   const telegramId = String(user.id);
+  const telegramName = [user.first_name, user.last_name]
+    .filter(Boolean)
+    .join(" ");
 
-  await supabaseAdmin.from("profiles").upsert(
-    {
+  const { data: existingProfile } = await supabaseAdmin
+    .from("profiles")
+    .select("id")
+    .eq("telegram_id", telegramId)
+    .single();
+
+  if (existingProfile) {
+    await supabaseAdmin
+      .from("profiles")
+      .update({
+        telegram_username: user.username || null,
+        telegram_name: telegramName,
+        avatar_url: user.photo_url || null,
+      })
+      .eq("telegram_id", telegramId);
+  } else {
+    await supabaseAdmin.from("profiles").insert({
       telegram_id: telegramId,
       telegram_username: user.username || null,
-      telegram_name: [user.first_name, user.last_name].filter(Boolean).join(" "),
+      telegram_name: telegramName,
       nickname: user.username || user.first_name || "Guest",
       avatar_url: user.photo_url || null,
       role: "guest",
       status: "guest",
-    },
-    { onConflict: "telegram_id" }
-  );
+      access_role: "guest",
+      position: "Guest",
+      steps: 0,
+      moves: 0,
+    });
+  }
 
   const response = NextResponse.json({ ok: true });
 
