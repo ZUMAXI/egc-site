@@ -42,6 +42,10 @@ export default async function AlliesPage() {
                 ) : null}
 
                 <div className="p-8">
+                  <div className="mb-2 text-sm text-zinc-500">
+                    Статус: {ally.status || "🤝 Союз"}
+                  </div>
+
                   <div className="mb-3 text-sm text-zinc-500">
                     Лидер:{" "}
                     {ally.leader ? (
