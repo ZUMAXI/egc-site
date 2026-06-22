@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import RulesTabs from "./RulesTabs";
+import SectionTitle from "../components/SectionTitle";
 
 export const dynamic = "force-dynamic";
 
@@ -12,11 +13,10 @@ export default async function RulesPage() {
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
       <div className="mx-auto max-w-5xl">
-        <h1 className="mb-3 text-5xl font-black">Правила EgC</h1>
-
-        <p className="mb-10 text-zinc-400">
-          Выбери раздел, чтобы открыть нужные правила.
-        </p>
+        <SectionTitle
+          title="Правила EgC"
+          text="Выбери раздел, чтобы открыть нужные правила."
+        />
 
         <RulesTabs rules={rules || []} />
       </div>

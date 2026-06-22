@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AnimatedCard from "../components/AnimatedCard";
 
 type Rule = {
   id: number;
@@ -15,6 +16,14 @@ export default function RulesTabs({ rules }: { rules: Rule[] }) {
   const [activeId, setActiveId] = useState(rules[0]?.id);
 
   const activeRule = rules.find((rule) => rule.id === activeId);
+
+  if (!rules.length) {
+    return (
+      <AnimatedCard>
+        <div className="p-8 text-zinc-400">Правил пока нет.</div>
+      </AnimatedCard>
+    );
+  }
 
   return (
     <div className="grid gap-8">
@@ -35,32 +44,38 @@ export default function RulesTabs({ rules }: { rules: Rule[] }) {
       </div>
 
       {activeRule ? (
-        <article className="rounded-3xl border border-white/10 bg-white/5 p-8">
-          <div className="mb-3 text-sm text-zinc-500">
-            Раздел: {activeRule.category || "rules"}
-          </div>
+        <AnimatedCard>
+          <article className="overflow-hidden">
+            {activeRule.image_url ? (
+              <img
+                src={activeRule.image_url}
+                alt={activeRule.title}
+                className="max-h-[500px] w-full bg-black object-contain p-3"
+              />
+            ) : null}
 
-          <h2 className="text-3xl font-bold">
-            {activeRule.title}
-          </h2>
+            <div className="p-8">
+              <div className="mb-4 flex flex-wrap gap-3">
+                <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-bold text-blue-300">
+                  📖 {activeRule.category || "Правила"}
+                </span>
 
-          <p className="mt-5 whitespace-pre-line text-lg leading-8 text-zinc-300">
-            {activeRule.content}
-          </p>
+                <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-300">
+                  № {activeRule.order_number || 1}
+                </span>
+              </div>
 
-          {activeRule.image_url ? (
-            <img
-              src={activeRule.image_url}
-              alt={activeRule.title}
-              className="mt-6 w-full rounded-2xl bg-black p-2 object-contain"
-            />
-          ) : null}
-        </article>
-      ) : (
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-zinc-400">
-          Правил пока нет.
-        </div>
-      )}
+              <h2 className="text-4xl font-black">{activeRule.title}</h2>
+
+              <div className="mt-8 rounded-2xl border border-white/10 bg-black/30 p-6">
+                <p className="whitespace-pre-line text-lg leading-9 text-zinc-300">
+                  {activeRule.content}
+                </p>
+              </div>
+            </div>
+          </article>
+        </AnimatedCard>
+      ) : null}
     </div>
   );
 }
