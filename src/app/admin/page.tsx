@@ -14,6 +14,7 @@ const sections = [
   { title: "🤝 Союзы", text: "Союзники, лидеры и изображения.", href: "/admin/allies" },
   { title: "🛒 Магазин", text: "Товары, цены и картинки.", href: "/admin/shop" },
   { title: "🎒 Инвентарь", text: "Предметы участников и покупки.", href: "/admin/users-inventory", },
+  { title: "🎁 Выдать предмет", text: "Выдача товаров участникам.", href: "/admin/give-item" },
   { title: "📜 Журнал", text: "История действий администрации.", href: "/admin/logs", },
 ];
 
