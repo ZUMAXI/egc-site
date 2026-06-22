@@ -33,6 +33,16 @@ export default function AdminScheduleForm({ schedule }: { schedule: any[] }) {
     setSortOrder(item.sort_order || 1);
   }
 
+  function clearForm() {
+    setEditing(null);
+    setDayName("");
+    setStartTime("");
+    setEndTime("");
+    setTitle("");
+    setAccent(accentOptions[0]);
+    setSortOrder(1);
+  }
+
   async function saveSchedule() {
     setSaving(true);
 
@@ -118,35 +128,73 @@ export default function AdminScheduleForm({ schedule }: { schedule: any[] }) {
           className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
         />
 
-        <button
-          onClick={saveSchedule}
-          disabled={saving}
-          className="w-fit rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
-        >
-          {saving ? "Сохраняем..." : "Сохранить"}
-        </button>
-      </div>
-
-      <div className="grid gap-3">
-        {items.map((item) => (
+        <div className="flex flex-wrap gap-3">
           <button
-            key={item.id}
-            onClick={() => startEdit(item)}
-            className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-5 text-left transition hover:bg-white/10 md:grid-cols-[160px_180px_1fr]"
+            onClick={saveSchedule}
+            disabled={saving}
+            className="w-fit rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
           >
-            <div className={`w-fit rounded-full px-4 py-2 font-bold ${item.accent}`}>
-              {item.day_name}
-            </div>
-
-            <div className="text-zinc-300">
-              {item.start_time || "—"}
-              {item.end_time ? ` — ${item.end_time}` : ""}
-            </div>
-
-            <div className="font-bold">{item.title || "Отдых"}</div>
+            {saving ? "Сохраняем..." : "Сохранить"}
           </button>
-        ))}
+
+          {editing ? (
+            <button
+              onClick={clearForm}
+              className="w-fit rounded-2xl border border-white/10 bg-white/5 px-7 py-3 font-bold text-white transition hover:bg-white/10"
+            >
+              Новый день
+            </button>
+          ) : null}
+        </div>
       </div>
+
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-white/5 backdrop-blur md:p-8">
+        <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-4xl font-black">Предпросмотр расписания</h2>
+            <p className="mt-2 text-zinc-400">
+              Нажми на день, чтобы открыть его редактирование.
+            </p>
+          </div>
+
+          <div className="rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-zinc-400">
+            Время по МСК
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          {items.length > 0 ? (
+            items.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => startEdit(item)}
+                className={`grid gap-4 rounded-2xl border p-4 text-left transition hover:bg-white/10 md:grid-cols-[180px_180px_1fr] md:items-center ${
+                  editing?.id === item.id
+                    ? "border-white/30 bg-white/10"
+                    : "border-white/10 bg-black/30"
+                }`}
+              >
+                <div className={`w-fit rounded-full px-4 py-2 font-bold ${item.accent}`}>
+                  {item.day_name || "День"}
+                </div>
+
+                <div className="w-fit rounded-full border border-white/10 bg-white/5 px-4 py-2 font-mono text-sm text-zinc-300">
+                  {item.start_time || "—"}
+                  {item.end_time ? ` — ${item.end_time}` : ""}
+                </div>
+
+                <div className="text-lg font-semibold text-white">
+                  {item.title || "Отдых"}
+                </div>
+              </button>
+            ))
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-black/30 p-5 text-zinc-400">
+              Расписание пока пустое.
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
