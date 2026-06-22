@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import AnimatedCard from "../components/AnimatedCard";
+import SectionTitle from "../components/SectionTitle";
 
 export const dynamic = "force-dynamic";
 
@@ -20,61 +22,68 @@ export default async function AlliesPage() {
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
       <div className="mx-auto max-w-5xl">
-        <h1 className="mb-3 text-5xl font-black">Союзы EgC</h1>
+        <SectionTitle
+          title="Союзы EgC"
+          text="Здесь отображаются союзные проекты и кланы."
+        />
 
-        <p className="mb-10 text-zinc-400">
-          Здесь отображаются союзные проекты и кланы.
-        </p>
-
-        <div className="grid gap-8">
+        <div className="grid gap-6">
           {allies && allies.length > 0 ? (
-            allies.map((ally) => (
-              <article
+            allies.map((ally, index) => (
+              <AnimatedCard
                 key={ally.id}
-                className="overflow-hidden rounded-3xl border border-white/10 bg-white/5"
+                delay={index * 0.05}
               >
-                {ally.image_url ? (
-                  <img
-                    src={ally.image_url}
-                    alt={ally.name}
-                    className="max-h-[500px] w-full bg-black object-contain"
-                  />
-                ) : null}
+                <article className="overflow-hidden">
+                  {ally.image_url ? (
+                    <img
+                      src={ally.image_url}
+                      alt={ally.name}
+                      className="max-h-[500px] w-full bg-black object-contain"
+                    />
+                  ) : null}
 
-                <div className="p-8">
-                  <div className="mb-2 text-sm text-zinc-500">
-                    Статус: {ally.status || "🤝 Союз"}
+                  <div className="p-8">
+                    <div className="mb-4 flex flex-wrap gap-3">
+                      <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 text-sm font-bold text-emerald-300">
+                        🤝 {ally.status || "Союз"}
+                      </span>
+                    </div>
+
+                    <h2 className="text-3xl font-black">
+                      {ally.name}
+                    </h2>
+
+                    <div className="mt-4 text-sm text-zinc-400">
+                      Лидер:{" "}
+                      {ally.leader ? (
+                        <Link
+                          href={`/members/${ally.leader.id}`}
+                          className="font-semibold text-white hover:underline"
+                        >
+                          {ally.leader.nickname ||
+                            ally.leader.telegram_name ||
+                            ally.leader.telegram_username ||
+                            "Участник"}
+                        </Link>
+                      ) : (
+                        "Не указан"
+                      )}
+                    </div>
+
+                    <p className="mt-6 whitespace-pre-line text-lg leading-8 text-zinc-300">
+                      {ally.description}
+                    </p>
                   </div>
-
-                  <div className="mb-3 text-sm text-zinc-500">
-                    Лидер:{" "}
-                    {ally.leader ? (
-                      <Link
-                        href={`/members/${ally.leader.id}`}
-                        className="text-white hover:underline"
-                      >
-                        {ally.leader.nickname ||
-                          ally.leader.telegram_name ||
-                          ally.leader.telegram_username ||
-                          "Участник"}
-                      </Link>
-                    ) : (
-                      "Не указан"
-                    )}
-                  </div>
-
-                  <h2 className="text-3xl font-bold">{ally.name}</h2>
-
-                  <p className="mt-4 whitespace-pre-line text-zinc-300">
-                    {ally.description}
-                  </p>
-                </div>
-              </article>
+                </article>
+              </AnimatedCard>
             ))
           ) : (
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-zinc-400">
-              Союзов пока нет.
-            </div>
+            <AnimatedCard>
+              <div className="p-8 text-zinc-400">
+                Союзов пока нет.
+              </div>
+            </AnimatedCard>
           )}
         </div>
       </div>
