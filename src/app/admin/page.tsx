@@ -11,6 +11,7 @@ const sections = [
   { title: "📖 Лор", text: "Главы истории и пролог.", href: "/admin/lore" },
   { title: "📜 Правила", text: "Разделы правил и изображения.", href: "/admin/rules" },
   { title: "📅 События", text: "Ивенты, расписание и награды.", href: "/admin/events" },
+  { title: "🗓 Расписание", text: "Недельное расписание событий.", href: "/admin/schedule" },
   { title: "🤝 Союзы", text: "Союзники, лидеры и изображения.", href: "/admin/allies" },
   { title: "🛒 Магазин", text: "Товары, цены и картинки.", href: "/admin/shop" },
   { title: "🎒 Инвентарь", text: "Предметы участников и покупки.", href: "/admin/users-inventory", },
