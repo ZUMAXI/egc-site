@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import BuyButton from "./BuyButton";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export default async function ShopPage() {
         <h1 className="mb-3 text-5xl font-black">Магазин EgC</h1>
 
         <p className="mb-10 text-zinc-400">
-          Здесь можно посмотреть предметы, которые покупаются за шаги и ходы.
+          Здесь можно купить предметы за шаги и ходы.
         </p>
 
         <div className="grid gap-8 md:grid-cols-3">
@@ -49,6 +50,8 @@ export default async function ShopPage() {
                       ♟ {item.price_moves || 0}
                     </span>
                   </div>
+
+                  <BuyButton itemId={item.id} />
                 </div>
               </article>
             ))
