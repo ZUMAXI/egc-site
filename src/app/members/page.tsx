@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import ProfileBadges from "../components/ProfileBadges";
 
 export const dynamic = "force-dynamic";
 
@@ -42,20 +43,18 @@ export default async function MembersPage() {
                   {profile.nickname || profile.telegram_name || "Участник"}
                 </h2>
 
-                <div className="mt-1">
-                  <p className="text-sm text-zinc-400">
-                    @{profile.telegram_username || "telegram"}
-                  </p>
+                <p className="text-sm text-zinc-400">
+                  @{profile.telegram_username || "telegram"}
+                </p>
 
-                  <p className="text-sm text-zinc-500">
-                    {profile.position || "Guest"} •{" "}
-                    {profile.access_role || "guest"}
-                  </p>
+                <ProfileBadges
+                  position={profile.position}
+                  accessRole={profile.access_role}
+                />
 
-                  <p className="mt-1 text-sm text-zinc-500">
-                    👣 {profile.steps || 0} • ♟ {profile.moves || 0}
-                  </p>
-                </div>
+                <p className="mt-2 text-sm text-zinc-500">
+                  👣 {profile.steps || 0} • ♟ {profile.moves || 0}
+                </p>
               </div>
             </Link>
           ))}
