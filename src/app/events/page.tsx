@@ -5,21 +5,14 @@ import SectionTitle from "../components/SectionTitle";
 
 export const dynamic = "force-dynamic";
 
-const schedule = [
-  { day: "Понедельник", time: "21:00 — 21:40", name: "Набор", accent: "bg-sky-500/15 text-sky-300" },
-  { day: "Вторник", time: "—", name: "Отдых", accent: "bg-zinc-500/15 text-zinc-300" },
-  { day: "Среда", time: "21:00", name: "Обход / после набор", accent: "bg-violet-500/15 text-violet-300" },
-  { day: "Четверг", time: "—", name: "Отдых", accent: "bg-zinc-500/15 text-zinc-300" },
-  { day: "Пятница", time: "—", name: "Отдых", accent: "bg-zinc-500/15 text-zinc-300" },
-  { day: "Суббота", time: "20:30", name: "РПБ", accent: "bg-yellow-500/15 text-yellow-300" },
-  { day: "Воскресенье", time: "20:00", name: "Тренировка", accent: "bg-emerald-500/15 text-emerald-300" },
-];
-
 export default async function EventsPage() {
-  const { data: events } = await supabase
-    .from("events")
-    .select("*")
-    .order("id");
+  const [{ data: events }, { data: schedule }] = await Promise.all([
+    supabase.from("events").select("*").order("id"),
+    supabase
+      .from("event_schedule")
+      .select("*")
+      .order("sort_order", { ascending: true }),
+  ]);
 
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
@@ -46,31 +39,41 @@ export default async function EventsPage() {
             </div>
 
             <div className="grid gap-3">
-              {schedule.map((item) => (
-                <div
-                  key={item.day}
-                  className="grid gap-4 rounded-2xl border border-white/10 bg-black/30 p-4 transition hover:bg-white/10 md:grid-cols-[180px_180px_1fr] md:items-center"
-                >
+              {schedule && schedule.length > 0 ? (
+                schedule.map((item) => (
                   <div
-                    className={`w-fit rounded-full px-4 py-2 font-bold ${item.accent}`}
+                    key={item.id}
+                    className="grid gap-4 rounded-2xl border border-white/10 bg-black/30 p-4 transition hover:bg-white/10 md:grid-cols-[180px_180px_1fr] md:items-center"
                   >
-                    {item.day}
-                  </div>
+                    <div
+                      className={`w-fit rounded-full px-4 py-2 font-bold ${
+                        item.accent || "bg-zinc-500/15 text-zinc-300"
+                      }`}
+                    >
+                      {item.day_name || "День"}
+                    </div>
 
-                  <div className="w-fit rounded-full border border-white/10 bg-white/5 px-4 py-2 font-mono text-sm text-zinc-300">
-                    {item.time}
-                  </div>
+                    <div className="w-fit rounded-full border border-white/10 bg-white/5 px-4 py-2 font-mono text-sm text-zinc-300">
+                      {item.start_time || "—"}
+                      {item.end_time ? ` — ${item.end_time}` : ""}
+                    </div>
 
-                  <div className="text-lg font-semibold">
-                    {item.name}
+                    <div className="text-lg font-semibold">
+                      {item.title || "Отдых"}
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-white/10 bg-black/30 p-5 text-zinc-400">
+                  Расписание пока не заполнено.
                 </div>
-              ))}
+              )}
             </div>
 
             <div className="mt-8 grid gap-3 md:grid-cols-3">
               <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-zinc-400">
-                📍 Все мероприятия проходят на <span className="text-white">2РУ</span>
+                📍 Все мероприятия проходят на{" "}
+                <span className="text-white">2РУ</span>
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-zinc-400">
@@ -78,16 +81,15 @@ export default async function EventsPage() {
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-zinc-400">
-                ⚠️ Расписание может <span className="text-white">меняться</span>
+                ⚠️ Расписание может{" "}
+                <span className="text-white">меняться</span>
               </div>
             </div>
           </div>
         </AnimatedCard>
 
         <div className="mt-12">
-          <h2 className="mb-6 text-3xl font-black">
-            Ближайшие события
-          </h2>
+          <h2 className="mb-6 text-3xl font-black">Ближайшие события</h2>
 
           <EventsTabs events={events || []} />
         </div>
