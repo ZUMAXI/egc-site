@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import EventsTabs from "./EventsTabs";
 import AnimatedCard from "../components/AnimatedCard";
 import SectionTitle from "../components/SectionTitle";
@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 
 export default async function EventsPage() {
   const [{ data: events }, { data: schedule }] = await Promise.all([
-    supabase.from("events").select("*").order("id"),
-    supabase
+    supabaseAdmin.from("events").select("*").order("id"),
+    supabaseAdmin
       .from("event_schedule")
       .select("*")
       .order("sort_order", { ascending: true }),
@@ -27,7 +27,6 @@ export default async function EventsPage() {
             <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <h2 className="text-4xl font-black">Расписание недели</h2>
-
                 <p className="mt-2 text-zinc-400">
                   Основные активности клана по дням.
                 </p>
@@ -72,8 +71,7 @@ export default async function EventsPage() {
 
             <div className="mt-8 grid gap-3 md:grid-cols-3">
               <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-zinc-400">
-                📍 Все мероприятия проходят на{" "}
-                <span className="text-white">2РУ</span>
+                📍 Все мероприятия проходят на <span className="text-white">2РУ</span>
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-zinc-400">
@@ -81,8 +79,7 @@ export default async function EventsPage() {
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-zinc-400">
-                ⚠️ Расписание может{" "}
-                <span className="text-white">меняться</span>
+                ⚠️ Расписание может <span className="text-white">меняться</span>
               </div>
             </div>
           </div>
@@ -90,7 +87,6 @@ export default async function EventsPage() {
 
         <div className="mt-12">
           <h2 className="mb-6 text-3xl font-black">Ближайшие события</h2>
-
           <EventsTabs events={events || []} />
         </div>
       </div>
