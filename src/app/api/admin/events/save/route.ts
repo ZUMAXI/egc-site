@@ -10,6 +10,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Not logged in" }, { status: 401 });
   }
 
+  const { data: currentUser } = await supabaseAdmin
+    .from("profiles")
+    .select("nickname, telegram_name, telegram_username")
+    .eq("telegram_id", telegramId)
+    .single();
+
   const body = await request.json();
 
   const data = {
@@ -30,6 +36,19 @@ export async function POST(request: NextRequest) {
   } else {
     await supabaseAdmin.from("events").insert(data);
   }
+
+  const adminName =
+    currentUser?.nickname ||
+    currentUser?.telegram_name ||
+    currentUser?.telegram_username ||
+    "Администратор";
+
+  await supabaseAdmin.from("admin_logs").insert({
+    admin_name: adminName,
+    action: body.id
+      ? `Изменил событие "${body.title}"`
+      : `Создал событие "${body.title}"`,
+  });
 
   return NextResponse.json({ ok: true });
 }
