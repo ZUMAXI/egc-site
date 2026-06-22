@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
   const { data: currentUser } = await supabaseAdmin
     .from("profiles")
-    .select("access_role")
+    .select("access_role, nickname, telegram_name, telegram_username")
     .eq("telegram_id", telegramId)
     .single();
 
@@ -36,6 +36,19 @@ export async function POST(request: NextRequest) {
   } else {
     await supabaseAdmin.from("news").insert(data);
   }
+
+  const adminName =
+    currentUser?.nickname ||
+    currentUser?.telegram_name ||
+    currentUser?.telegram_username ||
+    "Администратор";
+
+  await supabaseAdmin.from("admin_logs").insert({
+    admin_name: adminName,
+    action: body.id
+      ? `Изменил новость "${body.title}"`
+      : `Создал новость "${body.title}"`,
+  });
 
   return NextResponse.json({ ok: true });
 }
