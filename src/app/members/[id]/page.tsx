@@ -27,7 +27,7 @@ export default async function MemberProfilePage({
           {profile.avatar_url ? (
             <img
               src={profile.avatar_url}
-              alt={profile.nickname}
+              alt={profile.nickname || "Участник"}
               className="mb-6 h-32 w-32 rounded-full object-cover"
             />
           ) : (
@@ -46,23 +46,25 @@ export default async function MemberProfilePage({
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-              <div className="text-sm text-zinc-500">Роль</div>
-              <div className="font-bold">{profile.role}</div>
+              <div className="text-sm text-zinc-500">Должность</div>
+              <div className="font-bold">{profile.position || "Guest"}</div>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-              <div className="text-sm text-zinc-500">Статус</div>
-              <div className="font-bold">{profile.status}</div>
+              <div className="text-sm text-zinc-500">Доступ</div>
+              <div className="font-bold">
+                {profile.access_role || "guest"}
+              </div>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
               <div className="text-sm text-zinc-500">Шаги</div>
-              <div className="font-bold">{profile.steps}</div>
+              <div className="font-bold">{profile.steps || 0}</div>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
               <div className="text-sm text-zinc-500">Ходы</div>
-              <div className="font-bold">{profile.moves}</div>
+              <div className="font-bold">{profile.moves || 0}</div>
             </div>
           </div>
 

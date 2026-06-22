@@ -28,7 +28,7 @@ export default async function MembersPage() {
               {profile.avatar_url ? (
                 <img
                   src={profile.avatar_url}
-                  alt={profile.nickname}
+                  alt={profile.nickname || "Участник"}
                   className="h-14 w-14 rounded-full object-cover"
                 />
               ) : (
@@ -42,9 +42,20 @@ export default async function MembersPage() {
                   {profile.nickname || profile.telegram_name || "Участник"}
                 </h2>
 
-                <p className="text-sm text-zinc-400">
-                  @{profile.telegram_username || "telegram"} • {profile.role}
-                </p>
+                <div className="mt-1">
+                  <p className="text-sm text-zinc-400">
+                    @{profile.telegram_username || "telegram"}
+                  </p>
+
+                  <p className="text-sm text-zinc-500">
+                    {profile.position || "Guest"} •{" "}
+                    {profile.access_role || "guest"}
+                  </p>
+
+                  <p className="mt-1 text-sm text-zinc-500">
+                    👣 {profile.steps || 0} • ♟ {profile.moves || 0}
+                  </p>
+                </div>
               </div>
             </Link>
           ))}
