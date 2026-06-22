@@ -1,5 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import BuyButton from "./BuyButton";
+import AnimatedCard from "../components/AnimatedCard";
+import SectionTitle from "../components/SectionTitle";
 
 export const dynamic = "force-dynamic";
 
@@ -13,52 +15,59 @@ export default async function ShopPage() {
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
       <div className="mx-auto max-w-6xl">
-        <h1 className="mb-3 text-5xl font-black">Магазин EgC</h1>
+        <SectionTitle
+          title="Магазин EgC"
+          text="Здесь можно купить предметы за шаги и ходы."
+        />
 
-        <p className="mb-10 text-zinc-400">
-          Здесь можно купить предметы за шаги и ходы.
-        </p>
-
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-3">
           {items && items.length > 0 ? (
-            items.map((item) => (
-              <article
+            items.map((item, index) => (
+              <AnimatedCard
                 key={item.id}
-                className="overflow-hidden rounded-3xl border border-white/10 bg-white/5"
+                delay={index * 0.05}
               >
-                {item.image_url ? (
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="max-h-[320px] w-full bg-black object-contain p-3"
-                  />
-                ) : null}
+                <article className="overflow-hidden">
+                  {item.image_url ? (
+                    <img
+                      src={item.image_url}
+                      alt={item.name}
+                      className="max-h-[320px] w-full bg-black object-contain p-3"
+                    />
+                  ) : null}
 
-                <div className="p-6">
-                  <h2 className="text-2xl font-bold">{item.name}</h2>
+                  <div className="p-6">
+                    <h2 className="text-2xl font-black">
+                      {item.name}
+                    </h2>
 
-                  <p className="mt-4 whitespace-pre-line text-zinc-300">
-                    {item.description}
-                  </p>
+                    <p className="mt-4 whitespace-pre-line text-zinc-300">
+                      {item.description}
+                    </p>
 
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <span className="rounded-full bg-white px-4 py-2 font-bold text-black">
-                      👣 {item.price_steps || 0}
-                    </span>
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-2 font-bold text-emerald-300">
+                        👣 {item.price_steps || 0}
+                      </span>
 
-                    <span className="rounded-full bg-white px-4 py-2 font-bold text-black">
-                      ♟ {item.price_moves || 0}
-                    </span>
+                      <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-4 py-2 font-bold text-violet-300">
+                        ♟ {item.price_moves || 0}
+                      </span>
+                    </div>
+
+                    <div className="mt-6">
+                      <BuyButton itemId={item.id} />
+                    </div>
                   </div>
-
-                  <BuyButton itemId={item.id} />
-                </div>
-              </article>
+                </article>
+              </AnimatedCard>
             ))
           ) : (
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-zinc-400 md:col-span-3">
-              Товаров пока нет.
-            </div>
+            <AnimatedCard>
+              <div className="p-8 text-zinc-400">
+                Товаров пока нет.
+              </div>
+            </AnimatedCard>
           )}
         </div>
       </div>
