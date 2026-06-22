@@ -6,7 +6,18 @@ export const dynamic = "force-dynamic";
 export default async function AdminLogsPage() {
   const { data: logs } = await supabaseAdmin
     .from("admin_logs")
-    .select("*")
+    .select(`
+      *,
+      admin:profiles!admin_profile_id (
+        id,
+        nickname,
+        telegram_name,
+        telegram_username,
+        avatar_url,
+        position,
+        access_role
+      )
+    `)
     .order("created_at", { ascending: false });
 
   return (
