@@ -7,7 +7,7 @@ export default async function LorePage() {
   const { data: lore } = await supabase
     .from("lore")
     .select("*")
-    .order("sort_order", { ascending: true });
+    .order("chapter_number", { ascending: true });
 
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
