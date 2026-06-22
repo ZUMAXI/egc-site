@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import ProfileBadges from "../components/ProfileBadges";
+import ProfileAvatar from "../components/ProfileAvatar";
 
 export const dynamic = "force-dynamic";
 
@@ -26,17 +27,12 @@ export default async function MembersPage() {
               href={`/members/${profile.id}`}
               className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10"
             >
-              {profile.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.nickname || "Участник"}
-                  className="h-14 w-14 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-2xl">
-                  ♟
-                </div>
-              )}
+              <ProfileAvatar
+                avatarUrl={profile.avatar_url}
+                nickname={profile.nickname}
+                accessRole={profile.access_role}
+                size={56}
+              />
 
               <div>
                 <h2 className="text-xl font-bold">

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import ProfileBadges from "../../components/ProfileBadges";
+import ProfileAvatar from "../../components/ProfileAvatar";
 
 export const dynamic = "force-dynamic";
 
@@ -25,17 +26,14 @@ export default async function MemberProfilePage({
     <main className="min-h-screen bg-black px-6 py-12 text-white">
       <div className="mx-auto max-w-4xl">
         <div className="rounded-3xl border border-white/10 bg-white/5 p-8">
-          {profile.avatar_url ? (
-            <img
-              src={profile.avatar_url}
-              alt={profile.nickname || "Участник"}
-              className="mb-6 h-32 w-32 rounded-full object-cover"
+          <div className="mb-6">
+            <ProfileAvatar
+              avatarUrl={profile.avatar_url}
+              nickname={profile.nickname}
+              accessRole={profile.access_role}
+              size={128}
             />
-          ) : (
-            <div className="mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-white/10 text-5xl">
-              ♟
-            </div>
-          )}
+          </div>
 
           <h1 className="text-5xl font-black">
             {profile.nickname || profile.telegram_name || "Участник"}
@@ -53,16 +51,12 @@ export default async function MemberProfilePage({
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
               <div className="text-sm text-zinc-500">Шаги</div>
-              <div className="text-2xl font-bold">
-                👣 {profile.steps || 0}
-              </div>
+              <div className="text-2xl font-bold">👣 {profile.steps || 0}</div>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
               <div className="text-sm text-zinc-500">Ходы</div>
-              <div className="text-2xl font-bold">
-                ♟ {profile.moves || 0}
-              </div>
+              <div className="text-2xl font-bold">♟ {profile.moves || 0}</div>
             </div>
           </div>
 
