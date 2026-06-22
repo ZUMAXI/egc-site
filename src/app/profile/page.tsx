@@ -70,6 +70,13 @@ export default async function ProfilePage() {
             Редактировать профиль
           </a>
 
+          <a
+             href="/inventory"
+             className="div mt-6 inline-block rounded-2xl border border-white/10 bg-white/5 px-6 py-3 font-bold text-white transition hover:bg-white/10"
+          >
+            Мой инвентарь
+          </a>
+
           <LogoutButton />
 
           <p className="mt-6 whitespace-pre-line text-zinc-300">
