@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import LoreTabs from "./LoreTabs";
+import SectionTitle from "../components/SectionTitle";
 
 export const dynamic = "force-dynamic";
 
@@ -12,11 +13,10 @@ export default async function LorePage() {
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
       <div className="mx-auto max-w-5xl">
-        <h1 className="mb-3 text-5xl font-black">Лор EgC</h1>
-
-        <p className="mb-10 text-zinc-400">
-          Выбери главу, чтобы открыть её текст.
-        </p>
+        <SectionTitle
+          title="Лор EgC"
+          text="История мира Eternal Game of Chess. Выбери главу, чтобы открыть её содержание."
+        />
 
         <LoreTabs chapters={lore || []} />
       </div>
