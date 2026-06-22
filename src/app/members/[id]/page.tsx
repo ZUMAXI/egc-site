@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import ProfileBadges from "../../components/ProfileBadges";
 
 export const dynamic = "force-dynamic";
 
@@ -44,27 +45,24 @@ export default async function MemberProfilePage({
             @{profile.telegram_username || "telegram"}
           </p>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-4">
-            <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-              <div className="text-sm text-zinc-500">Должность</div>
-              <div className="font-bold">{profile.position || "Guest"}</div>
-            </div>
+          <ProfileBadges
+            position={profile.position}
+            accessRole={profile.access_role}
+          />
 
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-              <div className="text-sm text-zinc-500">Доступ</div>
-              <div className="font-bold">
-                {profile.access_role || "guest"}
+              <div className="text-sm text-zinc-500">Шаги</div>
+              <div className="text-2xl font-bold">
+                👣 {profile.steps || 0}
               </div>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-              <div className="text-sm text-zinc-500">Шаги</div>
-              <div className="font-bold">{profile.steps || 0}</div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
               <div className="text-sm text-zinc-500">Ходы</div>
-              <div className="font-bold">{profile.moves || 0}</div>
+              <div className="text-2xl font-bold">
+                ♟ {profile.moves || 0}
+              </div>
             </div>
           </div>
 
