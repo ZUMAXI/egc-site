@@ -13,6 +13,8 @@ const sections = [
   { title: "📅 События", text: "Ивенты, расписание и награды.", href: "/admin/events" },
   { title: "🤝 Союзы", text: "Союзники, лидеры и изображения.", href: "/admin/allies" },
   { title: "🛒 Магазин", text: "Товары, цены и картинки.", href: "/admin/shop" },
+  { title: "🎒 Инвентарь", text: "Предметы участников и покупки.", href: "/admin/inventory", },
+  { title: "📜 Журнал", text: "История действий администрации.", href: "/admin/logs", },
 ];
 
 export default async function AdminPage() {
