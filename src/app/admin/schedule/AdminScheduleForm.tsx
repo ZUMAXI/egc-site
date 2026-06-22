@@ -3,12 +3,36 @@
 import { useState } from "react";
 
 const accentOptions = [
-  "bg-sky-500/15 text-sky-300",
-  "bg-zinc-500/15 text-zinc-300",
-  "bg-violet-500/15 text-violet-300",
-  "bg-yellow-500/15 text-yellow-300",
-  "bg-emerald-500/15 text-emerald-300",
-  "bg-red-500/15 text-red-300",
+  {
+    name: "Голубой",
+    emoji: "🔵",
+    value: "bg-sky-500/15 text-sky-300",
+  },
+  {
+    name: "Серый",
+    emoji: "⚪",
+    value: "bg-zinc-500/15 text-zinc-300",
+  },
+  {
+    name: "Фиолетовый",
+    emoji: "🟣",
+    value: "bg-violet-500/15 text-violet-300",
+  },
+  {
+    name: "Жёлтый",
+    emoji: "🟡",
+    value: "bg-yellow-500/15 text-yellow-300",
+  },
+  {
+    name: "Зелёный",
+    emoji: "🟢",
+    value: "bg-emerald-500/15 text-emerald-300",
+  },
+  {
+    name: "Красный",
+    emoji: "🔴",
+    value: "bg-red-500/15 text-red-300",
+  },
 ];
 
 export default function AdminScheduleForm({ schedule }: { schedule: any[] }) {
@@ -19,7 +43,7 @@ export default function AdminScheduleForm({ schedule }: { schedule: any[] }) {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [title, setTitle] = useState("");
-  const [accent, setAccent] = useState(accentOptions[0]);
+  const [accent, setAccent] = useState(accentOptions[0].value);
   const [sortOrder, setSortOrder] = useState(1);
   const [saving, setSaving] = useState(false);
 
@@ -29,7 +53,7 @@ export default function AdminScheduleForm({ schedule }: { schedule: any[] }) {
     setStartTime(item.start_time || "");
     setEndTime(item.end_time || "");
     setTitle(item.title || "");
-    setAccent(item.accent || accentOptions[0]);
+    setAccent(item.accent || accentOptions[0].value);
     setSortOrder(item.sort_order || 1);
   }
 
@@ -39,7 +63,7 @@ export default function AdminScheduleForm({ schedule }: { schedule: any[] }) {
     setStartTime("");
     setEndTime("");
     setTitle("");
-    setAccent(accentOptions[0]);
+    setAccent(accentOptions[0].value);
     setSortOrder(1);
   }
 
@@ -107,17 +131,28 @@ export default function AdminScheduleForm({ schedule }: { schedule: any[] }) {
           className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
         />
 
-        <select
-          value={accent}
-          onChange={(event) => setAccent(event.target.value)}
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        >
-          {accentOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        <div>
+          <div className="mb-3 text-sm text-zinc-400">Цвет дня</div>
+
+          <div className="flex flex-wrap gap-3">
+            {accentOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setAccent(option.value)}
+                className={`rounded-2xl border px-4 py-3 font-bold transition hover:scale-105 ${
+                  accent === option.value
+                    ? "border-white bg-white text-black"
+                    : "border-white/10 bg-black text-white hover:bg-white/10"
+                }`}
+              >
+                <span className={`rounded-full px-3 py-1 ${option.value}`}>
+                  {option.emoji} {option.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <input
           type="number"
@@ -174,7 +209,11 @@ export default function AdminScheduleForm({ schedule }: { schedule: any[] }) {
                     : "border-white/10 bg-black/30"
                 }`}
               >
-                <div className={`w-fit rounded-full px-4 py-2 font-bold ${item.accent}`}>
+                <div
+                  className={`w-fit rounded-full px-4 py-2 font-bold ${
+                    item.accent || "bg-zinc-500/15 text-zinc-300"
+                  }`}
+                >
                   {item.day_name || "День"}
                 </div>
 
