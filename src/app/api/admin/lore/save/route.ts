@@ -19,16 +19,21 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
 
   const data = {
-    title: body.title,
-    category: body.category,
-    content: body.content,
+    title: body.title || null,
+    category: body.category || null,
+    content: body.content || null,
     sort_order: Number(body.sort_order || 1),
   };
 
-  if (body.id) {
-    await supabaseAdmin.from("lore").update(data).eq("id", body.id);
-  } else {
-    await supabaseAdmin.from("lore").insert(data);
+  const result = body.id
+    ? await supabaseAdmin.from("lore").update(data).eq("id", body.id)
+    : await supabaseAdmin.from("lore").insert(data);
+
+  if (result.error) {
+    return NextResponse.json(
+      { error: result.error.message },
+      { status: 500 }
+    );
   }
 
   const adminName =
