@@ -7,25 +7,25 @@ export default function AdminLoreForm({ lore }: { lore: any[] }) {
   const [editing, setEditing] = useState<any | null>(null);
 
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
   const [content, setContent] = useState("");
-  const [sortOrder, setSortOrder] = useState(1);
+  const [chapterNumber, setChapterNumber] = useState(1);
+  const [isFinished, setIsFinished] = useState(false);
   const [saving, setSaving] = useState(false);
 
   function startEdit(item: any) {
     setEditing(item);
     setTitle(item.title || "");
-    setCategory(item.category || "");
     setContent(item.content || "");
-    setSortOrder(item.sort_order || 1);
+    setChapterNumber(item.chapter_number || 1);
+    setIsFinished(item.is_finished || false);
   }
 
   function clearForm() {
     setEditing(null);
     setTitle("");
-    setCategory("");
     setContent("");
-    setSortOrder(1);
+    setChapterNumber(1);
+    setIsFinished(false);
   }
 
   async function saveLore() {
@@ -39,9 +39,9 @@ export default function AdminLoreForm({ lore }: { lore: any[] }) {
       body: JSON.stringify({
         id: editing?.id,
         title,
-        category,
         content,
-        sort_order: sortOrder,
+        chapter_number: chapterNumber,
+        is_finished: isFinished,
       }),
     });
 
@@ -85,24 +85,26 @@ export default function AdminLoreForm({ lore }: { lore: any[] }) {
           className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
         />
 
-        <input
-          value={category}
-          onChange={(event) => setCategory(event.target.value)}
-          placeholder="Категория, например: Пролог"
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        />
-
         <label className="grid gap-2">
-          <span className="text-sm text-zinc-400">Порядок отображения</span>
+          <span className="text-sm text-zinc-400">Номер главы</span>
 
           <input
             type="number"
             min={1}
-            value={sortOrder}
-            onChange={(event) => setSortOrder(Number(event.target.value))}
+            value={chapterNumber}
+            onChange={(event) => setChapterNumber(Number(event.target.value))}
             placeholder="Например: 1"
             className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
           />
+        </label>
+
+        <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black px-4 py-3">
+          <input
+            type="checkbox"
+            checked={isFinished}
+            onChange={(event) => setIsFinished(event.target.checked)}
+          />
+          <span>Глава завершена</span>
         </label>
 
         <textarea
@@ -140,7 +142,8 @@ export default function AdminLoreForm({ lore }: { lore: any[] }) {
             className="rounded-3xl border border-white/10 bg-white/5 p-6"
           >
             <div className="text-sm text-zinc-500">
-              Порядок: {item.sort_order || 1} • {item.category || "Лор"}
+              Глава: {item.chapter_number || 1} •{" "}
+              {item.is_finished ? "Завершена" : "В процессе"}
             </div>
 
             <h3 className="mt-2 text-2xl font-bold">{item.title}</h3>

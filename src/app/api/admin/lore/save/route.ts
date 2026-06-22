@@ -19,10 +19,10 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
 
   const data = {
-    title: body.title || null,
-    category: body.category || null,
-    content: body.content || null,
-    sort_order: Number(body.sort_order || 1),
+    title: body.title,
+    chapter_number: Number(body.chapter_number || 1),
+    content: body.content,
+    is_finished: body.is_finished ?? false,
   };
 
   const result = body.id
