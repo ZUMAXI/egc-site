@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AnimatedCard from "../components/AnimatedCard";
 
 type Event = {
   id: number;
@@ -16,15 +17,31 @@ type Event = {
   image_url: string;
 };
 
+function getStatusStyle(status?: string) {
+  switch (status) {
+    case "Идёт":
+      return "bg-green-500/15 text-green-300 border border-green-500/20";
+
+    case "Завершено":
+      return "bg-red-500/15 text-red-300 border border-red-500/20";
+
+    default:
+      return "bg-yellow-500/15 text-yellow-300 border border-yellow-500/20";
+  }
+}
+
 export default function EventsTabs({ events }: { events: Event[] }) {
   const [activeId, setActiveId] = useState(events[0]?.id);
+
   const activeEvent = events.find((event) => event.id === activeId);
 
   if (!events.length) {
     return (
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-zinc-400">
-        Ближайших событий пока нет.
-      </div>
+      <AnimatedCard>
+        <div className="p-8 text-zinc-400">
+          Ближайших событий пока нет.
+        </div>
+      </AnimatedCard>
     );
   }
 
@@ -47,47 +64,86 @@ export default function EventsTabs({ events }: { events: Event[] }) {
       </div>
 
       {activeEvent ? (
-        <article className="overflow-hidden rounded-3xl border border-white/10 bg-white/5">
-          {activeEvent.image_url ? (
-            <img
-              src={activeEvent.image_url}
-              alt={activeEvent.title}
-              className="max-h-[500px] w-full bg-black object-contain"
-            />
-          ) : null}
-
-          <div className="p-8">
-            <div className="mb-3 flex flex-wrap gap-3 text-sm">
-              <span className="rounded-full bg-white/10 px-3 py-1 text-zinc-300">
-                {activeEvent.status || "Скоро"}
-              </span>
-
-              <span className="rounded-full bg-white/10 px-3 py-1 text-zinc-300">
-                {activeEvent.type || "Событие"}
-              </span>
-            </div>
-
-            <h2 className="text-4xl font-black">{activeEvent.title}</h2>
-
-            <div className="mt-5 grid gap-3 text-sm text-zinc-400 md:grid-cols-4">
-              <div>День: {activeEvent.weekday || "—"}</div>
-              <div>Время: {activeEvent.start_time || "—"}</div>
-              <div>Шаги: +{activeEvent.reward_steps || 0}</div>
-              <div>Ходы: +{activeEvent.reward_moves || 0}</div>
-            </div>
-
-            {activeEvent.event_date ? (
-              <div className="mt-3 text-sm text-zinc-500">
-                Дата:{" "}
-                {new Date(activeEvent.event_date).toLocaleDateString("ru-RU")}
-              </div>
+        <AnimatedCard>
+          <article className="overflow-hidden">
+            {activeEvent.image_url ? (
+              <img
+                src={activeEvent.image_url}
+                alt={activeEvent.title}
+                className="max-h-[500px] w-full bg-black object-contain"
+              />
             ) : null}
 
-            <p className="mt-6 whitespace-pre-line text-lg leading-8 text-zinc-300">
-              {activeEvent.description}
-            </p>
-          </div>
-        </article>
+            <div className="p-8">
+              <div className="mb-4 flex flex-wrap gap-3">
+                <span
+                  className={`rounded-full px-4 py-2 text-sm font-bold ${getStatusStyle(
+                    activeEvent.status
+                  )}`}
+                >
+                  {activeEvent.status || "Скоро"}
+                </span>
+
+                <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-300">
+                  {activeEvent.type || "Событие"}
+                </span>
+              </div>
+
+              <h2 className="text-4xl font-black">
+                {activeEvent.title}
+              </h2>
+
+              <div className="mt-6 grid gap-3 md:grid-cols-4">
+                <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                  <div className="text-sm text-zinc-500">День</div>
+                  <div className="font-bold">
+                    {activeEvent.weekday || "—"}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                  <div className="text-sm text-zinc-500">Время</div>
+                  <div className="font-bold">
+                    {activeEvent.start_time || "—"}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                  <div className="text-sm text-emerald-300">
+                    Награда
+                  </div>
+
+                  <div className="font-bold text-emerald-200">
+                    👣 +{activeEvent.reward_steps || 0}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-4">
+                  <div className="text-sm text-violet-300">
+                    Награда
+                  </div>
+
+                  <div className="font-bold text-violet-200">
+                    ♟ +{activeEvent.reward_moves || 0}
+                  </div>
+                </div>
+              </div>
+
+              {activeEvent.event_date ? (
+                <div className="mt-4 text-sm text-zinc-500">
+                  📅{" "}
+                  {new Date(
+                    activeEvent.event_date
+                  ).toLocaleDateString("ru-RU")}
+                </div>
+              ) : null}
+
+              <p className="mt-8 whitespace-pre-line text-lg leading-8 text-zinc-300">
+                {activeEvent.description}
+              </p>
+            </div>
+          </article>
+        </AnimatedCard>
       ) : null}
     </div>
   );
