@@ -52,6 +52,10 @@ export default async function ProfilePage() {
               accessRole={profile.access_role}
             />
 
+            <div className="mt-3 w-fit rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm font-bold text-amber-300">
+              🏅 {profile.rank || "ГОСТЬ"}
+            </div>
+
             <div className="mt-8 grid gap-4 md:grid-cols-2">
               <AnimatedCard>
                 <div className="p-5">

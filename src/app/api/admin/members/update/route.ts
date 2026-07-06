@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
 
   const updateData: any = {
     position: body.position,
+    rank: body.rank || "ГОСТЬ",
     steps: body.steps,
     moves: body.moves,
     bio: body.bio,
@@ -36,7 +37,17 @@ export async function POST(request: NextRequest) {
     updateData.access_role = body.access_role;
   }
 
-  await supabaseAdmin.from("profiles").update(updateData).eq("id", body.id);
+  const result = await supabaseAdmin
+    .from("profiles")
+    .update(updateData)
+    .eq("id", body.id);
+
+  if (result.error) {
+    return NextResponse.json(
+      { error: result.error.message },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ ok: true });
 }

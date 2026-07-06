@@ -49,6 +49,10 @@ export default async function MembersPage() {
                     accessRole={profile.access_role}
                   />
 
+                  <div className="mt-2 w-fit rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-300">
+                    🏅 {profile.rank || "ГОСТЬ"}
+                  </div>
+
                   <p className="mt-2 text-sm text-zinc-500">
                     👣 {profile.steps || 0} • ♟ {profile.moves || 0}
                   </p>
