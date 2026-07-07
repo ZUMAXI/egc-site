@@ -69,33 +69,45 @@ export async function POST(request: NextRequest) {
   const targetName = getName(oldProfile);
   const logs: any[] = [];
 
-  function addLog(action: string) {
+  function addLog(data: any) {
     logs.push({
       admin_profile_id: currentUser?.id || null,
       admin_name: adminName,
-      action,
+      ...data,
     });
   }
 
   if (oldProfile.position !== updateData.position) {
-    addLog(
-      `Изменил должность участника "${targetName}": "${oldProfile.position || "Guest"}" → "${updateData.position || "Guest"}"`
-    );
+    addLog({
+      action_type: "position",
+      target_name: targetName,
+      old_value: oldProfile.position || "Guest",
+      new_value: updateData.position || "Guest",
+      action: `Изменил должность участника "${targetName}": "${oldProfile.position || "Guest"}" → "${updateData.position || "Guest"}"`,
+    });
   }
 
   if (oldProfile.rank !== updateData.rank) {
-    addLog(
-      `Изменил ранг участника "${targetName}": "${oldProfile.rank || "ГОСТЬ"}" → "${updateData.rank || "ГОСТЬ"}"`
-    );
+    addLog({
+      action_type: "rank",
+      target_name: targetName,
+      old_value: oldProfile.rank || "ГОСТЬ",
+      new_value: updateData.rank || "ГОСТЬ",
+      action: `Изменил ранг участника "${targetName}": "${oldProfile.rank || "ГОСТЬ"}" → "${updateData.rank || "ГОСТЬ"}"`,
+    });
   }
 
   if (
     currentAccessRole === "host" &&
     oldProfile.access_role !== updateData.access_role
   ) {
-    addLog(
-      `Изменил доступ участника "${targetName}": "${oldProfile.access_role || "guest"}" → "${updateData.access_role || "guest"}"`
-    );
+    addLog({
+      action_type: "access",
+      target_name: targetName,
+      old_value: oldProfile.access_role || "guest",
+      new_value: updateData.access_role || "guest",
+      action: `Изменил доступ участника "${targetName}": "${oldProfile.access_role || "guest"}" → "${updateData.access_role || "guest"}"`,
+    });
   }
 
   const oldSteps = Number(oldProfile.steps || 0);
@@ -108,22 +120,41 @@ export async function POST(request: NextRequest) {
     const movesDiff = newMoves - oldMoves;
 
     if (body.reward_reason) {
-      addLog(
-        `Начислил награду "${body.reward_reason}" участнику "${targetName}": шаги ${stepsDiff >= 0 ? "+" : ""}${stepsDiff}, ходы ${movesDiff >= 0 ? "+" : ""}${movesDiff}`
-      );
+      addLog({
+        action_type: "reward",
+        target_name: targetName,
+        reward_reason: body.reward_reason,
+        steps_delta: stepsDiff,
+        moves_delta: movesDiff,
+        action: `Начислил награду "${body.reward_reason}" участнику "${targetName}": шаги ${stepsDiff >= 0 ? "+" : ""}${stepsDiff}, ходы ${movesDiff >= 0 ? "+" : ""}${movesDiff}`,
+      });
     } else {
-      addLog(
-        `Вручную изменил валюту участника "${targetName}": шаги ${oldSteps} → ${newSteps}, ходы ${oldMoves} → ${newMoves}`
-      );
+      addLog({
+        action_type: "currency",
+        target_name: targetName,
+        old_value: `Шаги ${oldSteps}, ходы ${oldMoves}`,
+        new_value: `Шаги ${newSteps}, ходы ${newMoves}`,
+        steps_delta: stepsDiff,
+        moves_delta: movesDiff,
+        action: `Вручную изменил валюту участника "${targetName}": шаги ${oldSteps} → ${newSteps}, ходы ${oldMoves} → ${newMoves}`,
+      });
     }
   }
 
   if (oldProfile.bio !== updateData.bio) {
-    addLog(`Изменил описание профиля участника "${targetName}"`);
+    addLog({
+      action_type: "bio",
+      target_name: targetName,
+      action: `Изменил описание профиля участника "${targetName}"`,
+    });
   }
 
   if (oldProfile.avatar_url !== updateData.avatar_url) {
-    addLog(`Изменил аватар участника "${targetName}"`);
+    addLog({
+      action_type: "avatar",
+      target_name: targetName,
+      action: `Изменил аватар участника "${targetName}"`,
+    });
   }
 
   if (logs.length > 0) {
