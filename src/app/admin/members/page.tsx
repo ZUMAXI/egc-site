@@ -37,7 +37,7 @@ export default async function AdminMembersPage() {
     <main className="min-h-screen bg-black px-6 py-12 text-white">
       <div className="mx-auto max-w-5xl">
         <AdminBackButton />
-        
+
         <h1 className="mb-3 text-5xl font-black">
           Управление участниками
         </h1>
@@ -73,6 +73,10 @@ export default async function AdminMembersPage() {
                   position={profile.position}
                   accessRole={profile.access_role}
                 />
+
+                <div className="mt-2 w-fit rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-300">
+                  🏅 {profile.rank || "ГОСТЬ"}
+                </div>
 
                 <p className="mt-2 text-sm text-zinc-500">
                   👣 {profile.steps || 0} • ♟ {profile.moves || 0}
