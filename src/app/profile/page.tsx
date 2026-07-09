@@ -83,14 +83,21 @@ export default async function ProfilePage() {
                 href="/profile/edit"
                 className="rounded-2xl bg-white px-6 py-3 font-bold text-black transition hover:scale-105"
               >
-                Редактировать профиль
+                ✏️ Редактировать профиль
               </a>
 
               <a
                 href="/inventory"
                 className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 font-bold text-white transition hover:bg-white/10"
               >
-                Мой инвентарь
+                🎒 Мой инвентарь
+              </a>
+
+              <a
+                href="/profile/history"
+                className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-6 py-3 font-bold text-emerald-300 transition hover:bg-emerald-500/20"
+              >
+                💰 История аккаунта
               </a>
 
               <LogoutButton />

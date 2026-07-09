@@ -2,6 +2,15 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
+function getName(profile: any) {
+  return (
+    profile?.nickname ||
+    profile?.telegram_name ||
+    profile?.telegram_username ||
+    "Участник"
+  );
+}
+
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
   const telegramId = cookieStore.get("egc_user")?.value;
@@ -57,6 +66,21 @@ export async function POST(request: NextRequest) {
   await supabaseAdmin.from("inventory").insert({
     profile_id: profile.id,
     shop_item_id: item.id,
+  });
+
+  const profileName = getName(profile);
+
+  await supabaseAdmin.from("admin_logs").insert({
+    admin_profile_id: profile.id,
+    admin_name: profileName,
+    action_type: "purchase",
+    target_name: profileName,
+    reward_reason: item.name,
+    steps_delta: -priceSteps,
+    moves_delta: -priceMoves,
+    old_value: `Шаги ${profileSteps}, ходы ${profileMoves}`,
+    new_value: `Шаги ${profileSteps - priceSteps}, ходы ${profileMoves - priceMoves}`,
+    action: `Купил товар "${item.name}": шаги -${priceSteps}, ходы -${priceMoves}`,
   });
 
   return NextResponse.json({ ok: true });
