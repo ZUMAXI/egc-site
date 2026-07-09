@@ -60,7 +60,6 @@ export default async function ProfilePage() {
               <AnimatedCard>
                 <div className="p-5">
                   <div className="text-sm text-zinc-500">Шаги</div>
-
                   <div className="mt-2 text-3xl font-black">
                     👣 {profile.steps || 0}
                   </div>
@@ -70,7 +69,6 @@ export default async function ProfilePage() {
               <AnimatedCard>
                 <div className="p-5">
                   <div className="text-sm text-zinc-500">Ходы</div>
-
                   <div className="mt-2 text-3xl font-black">
                     ♟ {profile.moves || 0}
                   </div>
@@ -97,7 +95,7 @@ export default async function ProfilePage() {
                 href="/profile/history"
                 className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-6 py-3 font-bold text-emerald-300 transition hover:bg-emerald-500/20"
               >
-                💰 История аккаунта
+                📜 История аккаунта
               </a>
 
               <LogoutButton />
