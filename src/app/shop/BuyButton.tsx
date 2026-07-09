@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function BuyButton({ itemId }: { itemId: number }) {
   const [buying, setBuying] = useState(false);
@@ -19,10 +20,13 @@ export default function BuyButton({ itemId }: { itemId: number }) {
     const data = await res.json();
 
     if (res.ok) {
-      alert("Товар куплен!");
-      window.location.href = "/profile";
+      toast.success("Товар успешно куплен!");
+
+      setTimeout(() => {
+        window.location.href = "/profile";
+      }, 1000);
     } else {
-      alert(data.error || "Не удалось купить товар.");
+      toast.error(data.error || "Не удалось купить товар.");
       setBuying(false);
     }
   }
