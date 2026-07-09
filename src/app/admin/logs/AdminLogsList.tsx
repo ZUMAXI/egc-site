@@ -25,63 +25,49 @@ function getName(profile: any, fallback: string) {
   );
 }
 
+function getRewardIcon(reason?: string) {
+  switch (reason) {
+    case "Набор":
+      return "🎯";
+    case "Обход":
+      return "🛡️";
+    case "Тренировка":
+      return "🏃";
+    case "РПБ":
+      return "⚔️";
+    case "Посиделки":
+      return "☕";
+    case "Союз":
+      return "🤝";
+    case "Арт":
+      return "🎨";
+    case "Видео":
+      return "🎬";
+    case "Мем":
+      return "😂";
+    default:
+      return "🎁";
+  }
+}
+
 function getLogStyle(log: any) {
   switch (log.action_type) {
     case "rank":
-      return {
-        icon: "🏅",
-        label: "Ранг",
-        className: "border-amber-500/30 bg-amber-500/10 text-amber-300",
-      };
-
+      return { icon: "🏅", label: "Ранг", className: "border-amber-500/30 bg-amber-500/10 text-amber-300", title: "изменил ранг" };
     case "position":
-      return {
-        icon: "👑",
-        label: "Должность",
-        className: "border-purple-500/30 bg-purple-500/10 text-purple-300",
-      };
-
+      return { icon: "👑", label: "Должность", className: "border-purple-500/30 bg-purple-500/10 text-purple-300", title: "изменил должность" };
     case "access":
-      return {
-        icon: "🔐",
-        label: "Доступ",
-        className: "border-blue-500/30 bg-blue-500/10 text-blue-300",
-      };
-
+      return { icon: "🔐", label: "Доступ", className: "border-blue-500/30 bg-blue-500/10 text-blue-300", title: "изменил доступ" };
     case "reward":
-      return {
-        icon: "🎁",
-        label: "Награда",
-        className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-      };
-
+      return { icon: "🎁", label: "Награда", className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300", title: "выдал награду" };
     case "currency":
-      return {
-        icon: "💰",
-        label: "Валюта",
-        className: "border-yellow-500/30 bg-yellow-500/10 text-yellow-300",
-      };
-
+      return { icon: "💰", label: "Валюта", className: "border-yellow-500/30 bg-yellow-500/10 text-yellow-300", title: "изменил валюту" };
     case "bio":
-      return {
-        icon: "📝",
-        label: "Описание",
-        className: "border-zinc-500/30 bg-zinc-500/10 text-zinc-300",
-      };
-
+      return { icon: "📝", label: "Описание", className: "border-zinc-500/30 bg-zinc-500/10 text-zinc-300", title: "изменил описание" };
     case "avatar":
-      return {
-        icon: "🖼️",
-        label: "Аватар",
-        className: "border-pink-500/30 bg-pink-500/10 text-pink-300",
-      };
-
+      return { icon: "🖼️", label: "Аватар", className: "border-pink-500/30 bg-pink-500/10 text-pink-300", title: "изменил аватар" };
     default:
-      return {
-        icon: "📜",
-        label: "Действие",
-        className: "border-white/10 bg-white/5 text-zinc-300",
-      };
+      return { icon: "📜", label: "Действие", className: "border-white/10 bg-white/5 text-zinc-300", title: "выполнил действие" };
   }
 }
 
@@ -99,12 +85,12 @@ function ChangeBox({
       <div className="mb-3 text-sm font-bold text-zinc-400">{title}</div>
 
       <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
-        <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-red-200">
-          <div className="mb-1 text-xs text-red-300/80">Было</div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-zinc-200">
+          <div className="mb-1 text-xs text-zinc-500">Было</div>
           <div className="font-bold">{oldValue || "—"}</div>
         </div>
 
-        <div className="text-center text-2xl text-zinc-500">→</div>
+        <div className="text-center text-3xl text-zinc-500">➜</div>
 
         <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-200">
           <div className="mb-1 text-xs text-emerald-300/80">Стало</div>
@@ -121,17 +107,33 @@ function CurrencyBox({ log }: { log: any }) {
 
   return (
     <div className="mt-5 grid gap-3 md:grid-cols-2">
-      <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-5">
-        <div className="text-sm text-emerald-300">Шаги</div>
-        <div className="mt-2 text-3xl font-black text-emerald-200">
+      <div
+        className={`rounded-2xl border p-5 ${
+          steps < 0
+            ? "border-red-500/20 bg-red-500/10"
+            : "border-emerald-500/20 bg-emerald-500/10"
+        }`}
+      >
+        <div className={steps < 0 ? "text-sm text-red-300" : "text-sm text-emerald-300"}>
+          Шаги
+        </div>
+        <div className={steps < 0 ? "mt-2 text-3xl font-black text-red-200" : "mt-2 text-3xl font-black text-emerald-200"}>
           {steps >= 0 ? "+" : ""}
           {steps}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-5">
-        <div className="text-sm text-violet-300">Ходы</div>
-        <div className="mt-2 text-3xl font-black text-violet-200">
+      <div
+        className={`rounded-2xl border p-5 ${
+          moves < 0
+            ? "border-red-500/20 bg-red-500/10"
+            : "border-violet-500/20 bg-violet-500/10"
+        }`}
+      >
+        <div className={moves < 0 ? "text-sm text-red-300" : "text-sm text-violet-300"}>
+          Ходы
+        </div>
+        <div className={moves < 0 ? "mt-2 text-3xl font-black text-red-200" : "mt-2 text-3xl font-black text-violet-200"}>
           {moves >= 0 ? "+" : ""}
           {moves}
         </div>
@@ -140,43 +142,36 @@ function CurrencyBox({ log }: { log: any }) {
   );
 }
 
+function TargetCard({ name }: { name: string }) {
+  return (
+    <div className="mt-5 w-fit rounded-2xl border border-white/10 bg-black/30 px-5 py-3">
+      <div className="text-xs text-zinc-500">Участник</div>
+      <div className="mt-1 font-bold text-white">👤 {name}</div>
+    </div>
+  );
+}
+
 function LogDetails({ log }: { log: any }) {
   if (log.action_type === "rank") {
-    return (
-      <ChangeBox
-        title="Изменение ранга"
-        oldValue={log.old_value}
-        newValue={log.new_value}
-      />
-    );
+    return <ChangeBox title="Изменение ранга" oldValue={log.old_value} newValue={log.new_value} />;
   }
 
   if (log.action_type === "position") {
-    return (
-      <ChangeBox
-        title="Изменение должности"
-        oldValue={log.old_value}
-        newValue={log.new_value}
-      />
-    );
+    return <ChangeBox title="Изменение должности" oldValue={log.old_value} newValue={log.new_value} />;
   }
 
   if (log.action_type === "access") {
-    return (
-      <ChangeBox
-        title="Изменение доступа"
-        oldValue={log.old_value}
-        newValue={log.new_value}
-      />
-    );
+    return <ChangeBox title="Изменение доступа" oldValue={log.old_value} newValue={log.new_value} />;
   }
 
   if (log.action_type === "reward") {
+    const icon = getRewardIcon(log.reward_reason);
+
     return (
       <div className="mt-5 rounded-2xl border border-white/10 bg-black/30 p-5">
         <div className="text-sm text-zinc-400">Причина награды</div>
         <div className="mt-2 text-2xl font-black">
-          🎁 {log.reward_reason || "Награда"}
+          {icon} {log.reward_reason || "Награда"}
         </div>
 
         <CurrencyBox log={log} />
@@ -212,6 +207,7 @@ export default function AdminLogsList({ logs }: { logs: any[] }) {
         logs.map((log) => {
           const style = getLogStyle(log);
           const admin = log.admin;
+          const adminName = getName(admin, log.admin_name);
 
           return (
             <div
@@ -222,15 +218,13 @@ export default function AdminLogsList({ logs }: { logs: any[] }) {
                 <div className="flex gap-4">
                   <ProfileAvatar
                     avatarUrl={admin?.avatar_url}
-                    nickname={getName(admin, log.admin_name)}
+                    nickname={adminName}
                     accessRole={admin?.access_role}
                     size={64}
                   />
 
                   <div>
-                    <h2 className="text-xl font-bold">
-                      {getName(admin, log.admin_name)}
-                    </h2>
+                    <h2 className="text-xl font-bold">{adminName}</h2>
 
                     {admin ? (
                       <ProfileBadges
@@ -252,12 +246,11 @@ export default function AdminLogsList({ logs }: { logs: any[] }) {
                 </div>
               </div>
 
-              {log.target_name ? (
-                <div className="mt-5 w-fit rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-zinc-300">
-                  👤 Участник:{" "}
-                  <span className="font-bold text-white">{log.target_name}</span>
-                </div>
-              ) : null}
+              <div className="mt-5 text-lg font-black">
+                {style.icon} {adminName} {style.title}
+              </div>
+
+              {log.target_name ? <TargetCard name={log.target_name} /> : null}
 
               <LogDetails log={log} />
             </div>
