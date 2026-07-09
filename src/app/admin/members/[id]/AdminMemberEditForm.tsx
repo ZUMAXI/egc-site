@@ -89,7 +89,7 @@ export default function AdminMemberEditForm({
   const [moves, setMoves] = useState(profile.moves || 0);
   const [bio, setBio] = useState(profile.bio || "");
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || "");
-  const [rewardReason, setRewardReason] = useState("");
+  const [rewardReasons, setRewardReasons] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -110,7 +110,7 @@ export default function AdminMemberEditForm({
         moves,
         bio,
         avatar_url: avatarUrl,
-        reward_reason: rewardReason,
+        reward_reason: rewardReasons.join(", "),
       }),
     });
 
@@ -154,7 +154,11 @@ export default function AdminMemberEditForm({
       </label>
 
       {avatarUrl ? (
-        <img src={avatarUrl} alt={profile.nickname} className="h-28 w-28 rounded-full object-cover" />
+        <img
+          src={avatarUrl}
+          alt={profile.nickname}
+          className="h-28 w-28 rounded-full object-cover"
+        />
       ) : null}
 
       <label className="grid gap-2">
@@ -169,22 +173,47 @@ export default function AdminMemberEditForm({
 
       <label className="grid gap-2">
         <span className="text-sm text-zinc-400">Должность</span>
-        <select value={position} onChange={(event) => setPosition(event.target.value)} className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white">
-          {positions.map((item) => <option key={item} value={item}>{item}</option>)}
+        <select
+          value={position}
+          onChange={(event) => setPosition(event.target.value)}
+          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+        >
+          {positions.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
         </select>
       </label>
 
       <label className="grid gap-2">
         <span className="text-sm text-zinc-400">Ранг</span>
-        <select value={rank} onChange={(event) => setRank(event.target.value)} className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white">
-          {ranks.map((item) => <option key={item} value={item}>{item}</option>)}
+        <select
+          value={rank}
+          onChange={(event) => setRank(event.target.value)}
+          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+        >
+          {ranks.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
         </select>
       </label>
 
       <label className="grid gap-2">
         <span className="text-sm text-zinc-400">Доступ</span>
-        <select value={accessRole} onChange={(event) => setAccessRole(event.target.value)} disabled={currentAccessRole !== "host"} className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white disabled:opacity-50">
-          {accessRoles.map((item) => <option key={item} value={item}>{item}</option>)}
+        <select
+          value={accessRole}
+          onChange={(event) => setAccessRole(event.target.value)}
+          disabled={currentAccessRole !== "host"}
+          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white disabled:opacity-50"
+        >
+          {accessRoles.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
         </select>
       </label>
 
@@ -196,7 +225,7 @@ export default function AdminMemberEditForm({
             value={steps}
             onChange={(event) => {
               setSteps(Number(event.target.value));
-              setRewardReason("");
+              setRewardReasons([]);
             }}
             className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
           />
@@ -209,7 +238,7 @@ export default function AdminMemberEditForm({
             value={moves}
             onChange={(event) => {
               setMoves(Number(event.target.value));
-              setRewardReason("");
+              setRewardReasons([]);
             }}
             className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
           />
@@ -227,15 +256,16 @@ export default function AdminMemberEditForm({
               onClick={() => {
                 setSteps((value: number) => value + reward.steps);
                 setMoves((value: number) => value + reward.moves);
-                setRewardReason(reward.label);
+                setRewardReasons((list) => [...list, reward.label]);
               }}
               className={`rounded-2xl border p-4 text-left transition hover:bg-white/10 ${
-                rewardReason === reward.label
+                rewardReasons.includes(reward.label)
                   ? "border-emerald-500/30 bg-emerald-500/10"
                   : "border-white/10 bg-white/5"
               }`}
             >
               <div className="font-bold">{reward.label}</div>
+
               <div className="mt-1 text-sm text-zinc-400">
                 +{reward.steps} шаг. / +{reward.moves} ход.
               </div>
@@ -247,20 +277,30 @@ export default function AdminMemberEditForm({
           После начисления не забудь нажать «Сохранить».
         </p>
 
-        {rewardReason ? (
+        {rewardReasons.length > 0 ? (
           <p className="mt-2 text-sm text-emerald-300">
-            В журнал будет записано: награда «{rewardReason}».
+            В журнал будет записано:
+            <br />
+            {rewardReasons.join(", ")}
           </p>
         ) : null}
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <button onClick={save} disabled={saving} className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50">
+        <button
+          onClick={save}
+          disabled={saving}
+          className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
+        >
           {saving ? "Сохраняем..." : "Сохранить"}
         </button>
 
         {currentAccessRole === "host" ? (
-          <button onClick={deleteMember} disabled={deleting} className="rounded-2xl border border-red-500/30 bg-red-500/10 px-7 py-3 font-bold text-red-300 transition hover:bg-red-500/20 disabled:opacity-50">
+          <button
+            onClick={deleteMember}
+            disabled={deleting}
+            className="rounded-2xl border border-red-500/30 bg-red-500/10 px-7 py-3 font-bold text-red-300 transition hover:bg-red-500/20 disabled:opacity-50"
+          >
             {deleting ? "Удаляем..." : "Удалить аккаунт"}
           </button>
         ) : null}
