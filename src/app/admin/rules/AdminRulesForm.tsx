@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function AdminRulesForm({ rules }: { rules: any[] }) {
   const [items, setItems] = useState(rules);
@@ -42,9 +43,13 @@ export default function AdminRulesForm({ rules }: { rules: any[] }) {
     });
 
     if (res.ok) {
-      window.location.reload();
+      toast.success(editing ? "Правило сохранено!" : "Правило создано!");
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     } else {
-      alert("Не удалось сохранить правило.");
+      toast.error("Не удалось сохранить правило.");
       setSaving(false);
     }
   }
@@ -62,8 +67,9 @@ export default function AdminRulesForm({ rules }: { rules: any[] }) {
 
     if (res.ok) {
       setItems((prev) => prev.filter((item) => item.id !== id));
+      toast.success("Правило удалено.");
     } else {
-      alert("Не удалось удалить правило.");
+      toast.error("Не удалось удалить правило.");
     }
   }
 

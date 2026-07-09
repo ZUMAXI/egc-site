@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 declare global {
   interface Window {
@@ -27,7 +28,7 @@ export default function TelegramLoginButton() {
     const initData = window.Telegram?.WebApp?.initData;
 
     if (!initData) {
-      alert("Открой сайт через кнопку Open в боте Telegram.");
+      toast.error("Открой сайт через кнопку Open в Telegram.");
       setLoading(false);
       return;
     }
@@ -41,16 +42,23 @@ export default function TelegramLoginButton() {
     });
 
     if (res.ok) {
-      window.location.href = "/profile";
+      toast.success("Вход выполнен!");
+
+      setTimeout(() => {
+        window.location.href = "/profile";
+      }, 700);
     } else {
-      alert("Ошибка входа через Telegram.");
+      toast.error("Ошибка входа через Telegram.");
       setLoading(false);
     }
   }
 
   return (
     <>
-      <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
+      <Script
+        src="https://telegram.org/js/telegram-web-app.js"
+        strategy="beforeInteractive"
+      />
 
       <button
         onClick={login}

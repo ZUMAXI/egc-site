@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function EditProfileForm({ profile }: { profile: any }) {
   const [nickname, setNickname] = useState(profile.nickname || "");
@@ -24,9 +25,13 @@ export default function EditProfileForm({ profile }: { profile: any }) {
     });
 
     if (res.ok) {
-      window.location.href = "/profile";
+      toast.success("Профиль успешно сохранён!");
+
+      setTimeout(() => {
+        window.location.href = "/profile";
+      }, 800);
     } else {
-      alert("Не удалось сохранить профиль.");
+      toast.error("Не удалось сохранить профиль.");
       setSaving(false);
     }
   }

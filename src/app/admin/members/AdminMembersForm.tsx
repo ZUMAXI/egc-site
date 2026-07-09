@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 const positions = [
   "Guest",
@@ -41,8 +42,10 @@ export default function AdminMembersForm({
       body: JSON.stringify(profile),
     });
 
-    if (!res.ok) {
-      alert("Не удалось сохранить участника.");
+    if (res.ok) {
+      toast.success("Участник сохранён!");
+    } else {
+      toast.error("Не удалось сохранить участника.");
     }
 
     setSavingId(null);

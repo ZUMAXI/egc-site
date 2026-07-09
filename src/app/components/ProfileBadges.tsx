@@ -7,14 +7,16 @@ function getPositionStyle(position?: string | null) {
   if (position === "Host") {
     return {
       label: "✦ Host",
-      className: "border-red-500/40 bg-red-500/20 text-red-300 shadow-[0_0_18px_rgba(239,68,68,0.25)]",
+      className:
+        "border-red-500/40 bg-red-500/20 text-red-300 shadow-[0_0_18px_rgba(239,68,68,0.25)]",
     };
   }
 
   if (position === "Clerk") {
     return {
       label: "✧ Clerk",
-      className: "border-amber-500/40 bg-amber-500/20 text-amber-300 shadow-[0_0_18px_rgba(245,158,11,0.2)]",
+      className:
+        "border-amber-500/40 bg-amber-500/20 text-amber-300 shadow-[0_0_18px_rgba(245,158,11,0.2)]",
     };
   }
 
@@ -28,7 +30,8 @@ function getPositionStyle(position?: string | null) {
   if (position?.startsWith("Black ")) {
     return {
       label: getChessLabel(position),
-      className: "border-zinc-400/40 bg-zinc-950 text-white shadow-[0_0_18px_rgba(255,255,255,0.12)]",
+      className:
+        "border-zinc-400/40 bg-zinc-950 text-white shadow-[0_0_18px_rgba(255,255,255,0.12)]",
     };
   }
 
@@ -42,14 +45,21 @@ function getChessLabel(position?: string | null) {
   const icons: Record<string, string> = {
     "White King": "♔",
     "Black King": "♚",
+
     "White Queen": "♕",
     "Black Queen": "♛",
-    "White Bishop": "♗",
-    "Black Bishop": "♝",
-    "White Knight": "♘",
-    "Black Knight": "♞",
+
     "White Rook": "♖",
     "Black Rook": "♜",
+
+    "White Bishop": "♗",
+    "Black Bishop": "♝",
+
+    "White Knight": "♘",
+    "Black Knight": "♞",
+
+    "White Pawn": "♙",
+    "Black Pawn": "♟",
   };
 
   return `${icons[position || ""] || "♟"} ${position || "Guest"}`;

@@ -1,9 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 function getProfileName(profile: any) {
-  return profile.nickname || profile.telegram_name || profile.telegram_username || "Участник";
+  return (
+    profile.nickname ||
+    profile.telegram_name ||
+    profile.telegram_username ||
+    "Участник"
+  );
 }
 
 export default function GiveItemForm({
@@ -19,7 +25,7 @@ export default function GiveItemForm({
 
   async function giveItem() {
     if (!profileId || !itemId) {
-      alert("Выбери участника и предмет.");
+      toast.error("Выбери участника и предмет.");
       return;
     }
 
@@ -39,11 +45,12 @@ export default function GiveItemForm({
     const data = await res.json();
 
     if (res.ok) {
-      alert("Предмет выдан.");
+      toast.success("Предмет успешно выдан!");
+
       setProfileId("");
       setItemId("");
     } else {
-      alert(data.error || "Не удалось выдать предмет.");
+      toast.error(data.error || "Не удалось выдать предмет.");
     }
 
     setGiving(false);
@@ -53,12 +60,14 @@ export default function GiveItemForm({
     <div className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-8">
       <label className="grid gap-2">
         <span className="text-sm text-zinc-400">Участник</span>
+
         <select
           value={profileId}
           onChange={(event) => setProfileId(event.target.value)}
           className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
         >
           <option value="">Выбери участника</option>
+
           {profiles.map((profile) => (
             <option key={profile.id} value={profile.id}>
               {getProfileName(profile)}
@@ -69,12 +78,14 @@ export default function GiveItemForm({
 
       <label className="grid gap-2">
         <span className="text-sm text-zinc-400">Предмет</span>
+
         <select
           value={itemId}
           onChange={(event) => setItemId(event.target.value)}
           className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
         >
           <option value="">Выбери предмет</option>
+
           {items.map((item) => (
             <option key={item.id} value={item.id}>
               {item.name}

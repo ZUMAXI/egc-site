@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 const positions = [
   "Guest",
+  "White Pawn",
+  "Black Pawn",
   "Host",
   "Clerk",
   "White King",
@@ -115,9 +118,13 @@ export default function AdminMemberEditForm({
     });
 
     if (res.ok) {
-      window.location.href = "/admin/members";
+      toast.success("Участник сохранён!");
+
+      setTimeout(() => {
+        window.location.href = "/admin/members";
+      }, 800);
     } else {
-      alert("Не удалось сохранить участника.");
+      toast.error("Не удалось сохранить участника.");
       setSaving(false);
     }
   }
@@ -135,9 +142,13 @@ export default function AdminMemberEditForm({
     });
 
     if (res.ok) {
-      window.location.href = "/admin/members";
+      toast.success("Аккаунт удалён.");
+
+      setTimeout(() => {
+        window.location.href = "/admin/members";
+      }, 800);
     } else {
-      alert("Не удалось удалить аккаунт.");
+      toast.error("Не удалось удалить аккаунт.");
       setDeleting(false);
     }
   }

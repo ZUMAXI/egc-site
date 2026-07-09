@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function AdminNewsForm({ news }: { news: any[] }) {
   const [items, setItems] = useState(news);
@@ -43,8 +44,9 @@ export default function AdminNewsForm({ news }: { news: any[] }) {
     if (res.ok) {
       const data = await res.json();
       setImageUrl(data.url);
+      toast.success("Изображение загружено!");
     } else {
-      alert("Не удалось загрузить изображение.");
+      toast.error("Не удалось загрузить изображение.");
     }
 
     setUploading(false);
@@ -68,9 +70,13 @@ export default function AdminNewsForm({ news }: { news: any[] }) {
     });
 
     if (res.ok) {
-      window.location.reload();
+      toast.success(editing ? "Новость сохранена!" : "Новость создана!");
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     } else {
-      alert("Не удалось сохранить новость.");
+      toast.error("Не удалось сохранить новость.");
       setSaving(false);
     }
   }
@@ -89,8 +95,9 @@ export default function AdminNewsForm({ news }: { news: any[] }) {
 
     if (res.ok) {
       setItems((prev) => prev.filter((item) => item.id !== id));
+      toast.success("Новость удалена.");
     } else {
-      alert("Не удалось удалить новость.");
+      toast.error("Не удалось удалить новость.");
     }
   }
 

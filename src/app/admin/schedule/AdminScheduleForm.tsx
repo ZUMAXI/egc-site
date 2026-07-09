@@ -1,38 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 const accentOptions = [
-  {
-    name: "Голубой",
-    emoji: "🔵",
-    value: "bg-sky-500/15 text-sky-300",
-  },
-  {
-    name: "Серый",
-    emoji: "⚪",
-    value: "bg-zinc-500/15 text-zinc-300",
-  },
-  {
-    name: "Фиолетовый",
-    emoji: "🟣",
-    value: "bg-violet-500/15 text-violet-300",
-  },
-  {
-    name: "Жёлтый",
-    emoji: "🟡",
-    value: "bg-yellow-500/15 text-yellow-300",
-  },
-  {
-    name: "Зелёный",
-    emoji: "🟢",
-    value: "bg-emerald-500/15 text-emerald-300",
-  },
-  {
-    name: "Красный",
-    emoji: "🔴",
-    value: "bg-red-500/15 text-red-300",
-  },
+  { name: "Голубой", emoji: "🔵", value: "bg-sky-500/15 text-sky-300" },
+  { name: "Серый", emoji: "⚪", value: "bg-zinc-500/15 text-zinc-300" },
+  { name: "Фиолетовый", emoji: "🟣", value: "bg-violet-500/15 text-violet-300" },
+  { name: "Жёлтый", emoji: "🟡", value: "bg-yellow-500/15 text-yellow-300" },
+  { name: "Зелёный", emoji: "🟢", value: "bg-emerald-500/15 text-emerald-300" },
+  { name: "Красный", emoji: "🔴", value: "bg-red-500/15 text-red-300" },
 ];
 
 export default function AdminScheduleForm({ schedule }: { schedule: any[] }) {
@@ -87,9 +64,13 @@ export default function AdminScheduleForm({ schedule }: { schedule: any[] }) {
     });
 
     if (res.ok) {
-      window.location.reload();
+      toast.success(editing ? "Расписание сохранено!" : "День добавлен!");
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     } else {
-      alert("Не удалось сохранить расписание.");
+      toast.error("Не удалось сохранить расписание.");
       setSaving(false);
     }
   }

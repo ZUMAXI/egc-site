@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 function getProfileName(profile: any) {
   return (
@@ -66,8 +67,9 @@ export default function AdminAlliesForm({
     if (res.ok) {
       const data = await res.json();
       setImageUrl(data.url);
+      toast.success("Изображение загружено!");
     } else {
-      alert("Не удалось загрузить изображение.");
+      toast.error("Не удалось загрузить изображение.");
     }
 
     setUploading(false);
@@ -93,9 +95,13 @@ export default function AdminAlliesForm({
     });
 
     if (res.ok) {
-      window.location.reload();
+      toast.success(editing ? "Союз сохранён!" : "Союз создан!");
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     } else {
-      alert("Не удалось сохранить союз.");
+      toast.error("Не удалось сохранить союз.");
       setSaving(false);
     }
   }
@@ -113,8 +119,9 @@ export default function AdminAlliesForm({
 
     if (res.ok) {
       setItems((prev) => prev.filter((item) => item.id !== id));
+      toast.success("Союз удалён.");
     } else {
-      alert("Не удалось удалить союз.");
+      toast.error("Не удалось удалить союз.");
     }
   }
 

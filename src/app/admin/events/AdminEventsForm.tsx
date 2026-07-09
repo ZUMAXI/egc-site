@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function AdminEventsForm({ events }: { events: any[] }) {
   const [items, setItems] = useState(events);
@@ -61,8 +62,9 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
     if (res.ok) {
       const data = await res.json();
       setImageUrl(data.url);
+      toast.success("Изображение загружено!");
     } else {
-      alert("Не удалось загрузить изображение.");
+      toast.error("Не удалось загрузить изображение.");
     }
 
     setUploading(false);
@@ -92,9 +94,13 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
     });
 
     if (res.ok) {
-      window.location.reload();
+      toast.success(editing ? "Событие сохранено!" : "Событие создано!");
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     } else {
-      alert("Не удалось сохранить событие.");
+      toast.error("Не удалось сохранить событие.");
       setSaving(false);
     }
   }
@@ -113,8 +119,9 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
 
     if (res.ok) {
       setItems((prev) => prev.filter((item) => item.id !== id));
+      toast.success("Событие удалено.");
     } else {
-      alert("Не удалось удалить событие.");
+      toast.error("Не удалось удалить событие.");
     }
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function AdminLoreForm({ lore }: { lore: any[] }) {
   const [items, setItems] = useState(lore);
@@ -46,9 +47,13 @@ export default function AdminLoreForm({ lore }: { lore: any[] }) {
     });
 
     if (res.ok) {
-      window.location.reload();
+      toast.success(editing ? "Глава лора сохранена!" : "Глава лора создана!");
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     } else {
-      alert("Не удалось сохранить лор.");
+      toast.error("Не удалось сохранить лор.");
       setSaving(false);
     }
   }
@@ -66,8 +71,9 @@ export default function AdminLoreForm({ lore }: { lore: any[] }) {
 
     if (res.ok) {
       setItems((prev) => prev.filter((item) => item.id !== id));
+      toast.success("Глава лора удалена.");
     } else {
-      alert("Не удалось удалить лор.");
+      toast.error("Не удалось удалить лор.");
     }
   }
 

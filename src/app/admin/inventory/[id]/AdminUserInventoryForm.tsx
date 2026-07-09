@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function AdminUserInventoryForm({
   inventory,
@@ -23,8 +24,9 @@ export default function AdminUserInventoryForm({
 
     if (res.ok) {
       setItems((prev) => prev.filter((entry) => entry.id !== id));
+      toast.success("Предмет удалён из инвентаря.");
     } else {
-      alert("Не удалось удалить предмет.");
+      toast.error("Не удалось удалить предмет.");
     }
   }
 

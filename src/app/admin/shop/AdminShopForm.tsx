@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function AdminShopForm({ items }: { items: any[] }) {
   const [list, setList] = useState(items);
@@ -52,8 +53,9 @@ export default function AdminShopForm({ items }: { items: any[] }) {
     if (res.ok) {
       const data = await res.json();
       setImageUrl(data.url);
+      toast.success("Изображение загружено!");
     } else {
-      alert("Не удалось загрузить изображение.");
+      toast.error("Не удалось загрузить изображение.");
     }
 
     setUploading(false);
@@ -80,9 +82,13 @@ export default function AdminShopForm({ items }: { items: any[] }) {
     });
 
     if (res.ok) {
-      window.location.reload();
+      toast.success(editing ? "Товар сохранён!" : "Товар создан!");
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     } else {
-      alert("Не удалось сохранить товар.");
+      toast.error("Не удалось сохранить товар.");
       setSaving(false);
     }
   }
@@ -100,8 +106,9 @@ export default function AdminShopForm({ items }: { items: any[] }) {
 
     if (res.ok) {
       setList((prev) => prev.filter((item) => item.id !== id));
+      toast.success("Товар удалён.");
     } else {
-      alert("Не удалось удалить товар.");
+      toast.error("Не удалось удалить товар.");
     }
   }
 
