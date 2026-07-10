@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 type TelegramWebApp = {
-  platform?: string;
+  initData?: string;
   ready?: () => void;
   expand?: () => void;
 };
@@ -14,73 +15,131 @@ type TelegramWindow = Window & {
   };
 };
 
-const telegramDesktopPlatforms = [
-  "tdesktop",
-  "macos",
-  "weba",
-  "webk",
-  "web",
-];
+export default function TelegramLoginButton() {
+  const [loading, setLoading] = useState(false);
+  const [scriptReady, setScriptReady] = useState(false);
 
-const telegramMobilePlatforms = [
-  "android",
-  "android_x",
-  "ios",
-];
-
-export default function PlatformDetector() {
   useEffect(() => {
-    const root = document.documentElement;
     const telegramWindow = window as TelegramWindow;
-    const telegramWebApp = telegramWindow.Telegram?.WebApp;
-    const platform = telegramWebApp?.platform?.toLowerCase() || "";
 
-    function clearPlatformClasses() {
-      root.classList.remove(
-        "telegram-desktop",
-        "telegram-mobile",
-        "browser-desktop",
-        "browser-mobile"
-      );
-    }
-
-    function applyBrowserPlatform() {
-      clearPlatformClasses();
-
-      if (window.innerWidth >= 900) {
-        root.classList.add("browser-desktop");
-      } else {
-        root.classList.add("browser-mobile");
-      }
-    }
-
-    clearPlatformClasses();
-
-    if (telegramWebApp) {
-      telegramWebApp.ready?.();
-      telegramWebApp.expand?.();
-
-      if (telegramMobilePlatforms.includes(platform)) {
-        root.classList.add("telegram-mobile");
-      } else if (telegramDesktopPlatforms.includes(platform)) {
-        root.classList.add("telegram-desktop");
-      } else if (window.innerWidth >= 900) {
-        root.classList.add("telegram-desktop");
-      } else {
-        root.classList.add("telegram-mobile");
-      }
-
+    if (telegramWindow.Telegram?.WebApp) {
+      telegramWindow.Telegram.WebApp.ready?.();
+      telegramWindow.Telegram.WebApp.expand?.();
+      setScriptReady(true);
       return;
     }
 
-    applyBrowserPlatform();
+    const existingScript = document.querySelector(
+      'script[src="https://telegram.org/js/telegram-web-app.js"]'
+    ) as HTMLScriptElement | null;
 
-    window.addEventListener("resize", applyBrowserPlatform);
+    if (existingScript) {
+      const checkTelegram = window.setInterval(() => {
+        if (telegramWindow.Telegram?.WebApp) {
+          window.clearInterval(checkTelegram);
+          telegramWindow.Telegram.WebApp.ready?.();
+          telegramWindow.Telegram.WebApp.expand?.();
+          setScriptReady(true);
+        }
+      }, 100);
+
+      const timeout = window.setTimeout(() => {
+        window.clearInterval(checkTelegram);
+      }, 5000);
+
+      return () => {
+        window.clearInterval(checkTelegram);
+        window.clearTimeout(timeout);
+      };
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://telegram.org/js/telegram-web-app.js";
+    script.async = true;
+
+    script.onload = () => {
+      telegramWindow.Telegram?.WebApp?.ready?.();
+      telegramWindow.Telegram?.WebApp?.expand?.();
+      setScriptReady(true);
+    };
+
+    script.onerror = () => {
+      toast.error("Не удалось загрузить Telegram.");
+    };
+
+    document.head.appendChild(script);
 
     return () => {
-      window.removeEventListener("resize", applyBrowserPlatform);
+      script.onload = null;
+      script.onerror = null;
     };
   }, []);
 
-  return null;
+  async function login() {
+    if (loading) return;
+
+    setLoading(true);
+
+    try {
+      const telegramWindow = window as TelegramWindow;
+      const telegramWebApp = telegramWindow.Telegram?.WebApp;
+
+      telegramWebApp?.ready?.();
+      telegramWebApp?.expand?.();
+
+      const initData = telegramWebApp?.initData;
+
+      if (!initData) {
+        toast.error(
+          "Открой сайт через кнопку «Войти в EgC» внутри Telegram-бота."
+        );
+        setLoading(false);
+        return;
+      }
+
+      const res = await fetch("/api/auth/telegram", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ initData }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        toast.error(data?.error || "Ошибка входа через Telegram.");
+        setLoading(false);
+        return;
+      }
+
+      toast.success("Вход выполнен!");
+
+      setTimeout(() => {
+        window.location.href = "/profile";
+      }, 700);
+    } catch {
+      toast.error("Не удалось выполнить вход.");
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="grid gap-3">
+      <button
+        type="button"
+        onClick={login}
+        disabled={loading}
+        className="w-fit rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {loading ? "Входим..." : "Войти через Telegram"}
+      </button>
+
+      {!scriptReady ? (
+        <p className="text-sm text-zinc-500">
+          Подключаем Telegram…
+        </p>
+      ) : null}
+    </div>
+  );
 }
