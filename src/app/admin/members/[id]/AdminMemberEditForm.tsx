@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 const positions = [
   "Guest",
@@ -86,7 +87,9 @@ export default function AdminMemberEditForm({
   currentAccessRole: string;
 }) {
   const [position, setPosition] = useState(profile.position || "Guest");
-  const [accessRole, setAccessRole] = useState(profile.access_role || "guest");
+  const [accessRole, setAccessRole] = useState(
+    profile.access_role || "guest"
+  );
   const [rank, setRank] = useState(profile.rank || "ГОСТЬ");
   const [steps, setSteps] = useState(profile.steps || 0);
   const [moves, setMoves] = useState(profile.moves || 0);
@@ -95,8 +98,11 @@ export default function AdminMemberEditForm({
   const [rewardReasons, setRewardReasons] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   async function save() {
+    if (saving) return;
+
     setSaving(true);
 
     const res = await fetch("/api/admin/members/update", {
@@ -130,15 +136,18 @@ export default function AdminMemberEditForm({
   }
 
   async function deleteMember() {
-    const ok = confirm("Точно удалить этот аккаунт? Это действие нельзя отменить.");
-    if (!ok) return;
+    if (deleting) return;
 
     setDeleting(true);
 
     const res = await fetch("/api/admin/members/delete", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: profile.id }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: profile.id,
+      }),
     });
 
     if (res.ok) {
@@ -150,172 +159,210 @@ export default function AdminMemberEditForm({
     } else {
       toast.error("Не удалось удалить аккаунт.");
       setDeleting(false);
+      setDeleteDialogOpen(false);
     }
   }
 
   return (
-    <div className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-8">
-      <label className="grid gap-2">
-        <span className="text-sm text-zinc-400">Ссылка на аватар</span>
-        <input
-          value={avatarUrl}
-          onChange={(event) => setAvatarUrl(event.target.value)}
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        />
-      </label>
+    <>
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        title="Удалить аккаунт?"
+        description={`Аккаунт участника «${
+          profile.nickname ||
+          profile.telegram_name ||
+          profile.telegram_username ||
+          "Участник"
+        }» будет удалён без возможности восстановления.`}
+        confirmText={deleting ? "Удаляем..." : "Удалить"}
+        cancelText="Отмена"
+        onConfirm={deleteMember}
+        onCancel={() => {
+          if (!deleting) {
+            setDeleteDialogOpen(false);
+          }
+        }}
+      />
 
-      {avatarUrl ? (
-        <img
-          src={avatarUrl}
-          alt={profile.nickname}
-          className="h-28 w-28 rounded-full object-cover"
-        />
-      ) : null}
-
-      <label className="grid gap-2">
-        <span className="text-sm text-zinc-400">Описание</span>
-        <textarea
-          value={bio}
-          onChange={(event) => setBio(event.target.value)}
-          rows={5}
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        />
-      </label>
-
-      <label className="grid gap-2">
-        <span className="text-sm text-zinc-400">Должность</span>
-        <select
-          value={position}
-          onChange={(event) => setPosition(event.target.value)}
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        >
-          {positions.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="grid gap-2">
-        <span className="text-sm text-zinc-400">Ранг</span>
-        <select
-          value={rank}
-          onChange={(event) => setRank(event.target.value)}
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        >
-          {ranks.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="grid gap-2">
-        <span className="text-sm text-zinc-400">Доступ</span>
-        <select
-          value={accessRole}
-          onChange={(event) => setAccessRole(event.target.value)}
-          disabled={currentAccessRole !== "host"}
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white disabled:opacity-50"
-        >
-          {accessRoles.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-8">
         <label className="grid gap-2">
-          <span className="text-sm text-zinc-400">Шаги</span>
+          <span className="text-sm text-zinc-400">
+            Ссылка на аватар
+          </span>
+
           <input
-            type="number"
-            value={steps}
-            onChange={(event) => {
-              setSteps(Number(event.target.value));
-              setRewardReasons([]);
-            }}
+            value={avatarUrl}
+            onChange={(event) => setAvatarUrl(event.target.value)}
+            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+          />
+        </label>
+
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt={profile.nickname || "Аватар участника"}
+            className="h-28 w-28 rounded-full object-cover"
+          />
+        ) : null}
+
+        <label className="grid gap-2">
+          <span className="text-sm text-zinc-400">Описание</span>
+
+          <textarea
+            value={bio}
+            onChange={(event) => setBio(event.target.value)}
+            rows={5}
             className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
           />
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm text-zinc-400">Ходы</span>
-          <input
-            type="number"
-            value={moves}
-            onChange={(event) => {
-              setMoves(Number(event.target.value));
-              setRewardReasons([]);
-            }}
+          <span className="text-sm text-zinc-400">Должность</span>
+
+          <select
+            value={position}
+            onChange={(event) => setPosition(event.target.value)}
             className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-          />
+          >
+            {positions.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
         </label>
-      </div>
 
-      <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
-        <h3 className="mb-4 text-2xl font-bold">Начислить награду</h3>
+        <label className="grid gap-2">
+          <span className="text-sm text-zinc-400">Ранг</span>
 
-        <div className="grid gap-3 md:grid-cols-2">
-          {rewards.map((reward) => (
-            <button
-              key={reward.label}
-              type="button"
-              onClick={() => {
-                setSteps((value: number) => value + reward.steps);
-                setMoves((value: number) => value + reward.moves);
-                setRewardReasons((list) => [...list, reward.label]);
+          <select
+            value={rank}
+            onChange={(event) => setRank(event.target.value)}
+            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+          >
+            {ranks.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="grid gap-2">
+          <span className="text-sm text-zinc-400">Доступ</span>
+
+          <select
+            value={accessRole}
+            onChange={(event) => setAccessRole(event.target.value)}
+            disabled={currentAccessRole !== "host"}
+            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white disabled:opacity-50"
+          >
+            {accessRoles.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="grid gap-2">
+            <span className="text-sm text-zinc-400">Шаги</span>
+
+            <input
+              type="number"
+              value={steps}
+              onChange={(event) => {
+                setSteps(Number(event.target.value));
+                setRewardReasons([]);
               }}
-              className={`rounded-2xl border p-4 text-left transition hover:bg-white/10 ${
-                rewardReasons.includes(reward.label)
-                  ? "border-emerald-500/30 bg-emerald-500/10"
-                  : "border-white/10 bg-white/5"
-              }`}
-            >
-              <div className="font-bold">{reward.label}</div>
+              className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+            />
+          </label>
 
-              <div className="mt-1 text-sm text-zinc-400">
-                +{reward.steps} шаг. / +{reward.moves} ход.
-              </div>
-            </button>
-          ))}
+          <label className="grid gap-2">
+            <span className="text-sm text-zinc-400">Ходы</span>
+
+            <input
+              type="number"
+              value={moves}
+              onChange={(event) => {
+                setMoves(Number(event.target.value));
+                setRewardReasons([]);
+              }}
+              className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+            />
+          </label>
         </div>
 
-        <p className="mt-4 text-sm text-zinc-500">
-          После начисления не забудь нажать «Сохранить».
-        </p>
+        <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
+          <h3 className="mb-4 text-2xl font-bold">
+            Начислить награду
+          </h3>
 
-        {rewardReasons.length > 0 ? (
-          <p className="mt-2 text-sm text-emerald-300">
-            В журнал будет записано:
-            <br />
-            {rewardReasons.join(", ")}
+          <div className="grid gap-3 md:grid-cols-2">
+            {rewards.map((reward) => (
+              <button
+                key={reward.label}
+                type="button"
+                onClick={() => {
+                  setSteps((value: number) => value + reward.steps);
+                  setMoves((value: number) => value + reward.moves);
+                  setRewardReasons((list) => [
+                    ...list,
+                    reward.label,
+                  ]);
+                }}
+                className={`rounded-2xl border p-4 text-left transition hover:bg-white/10 ${
+                  rewardReasons.includes(reward.label)
+                    ? "border-emerald-500/30 bg-emerald-500/10"
+                    : "border-white/10 bg-white/5"
+                }`}
+              >
+                <div className="font-bold">{reward.label}</div>
+
+                <div className="mt-1 text-sm text-zinc-400">
+                  +{reward.steps} шаг. / +{reward.moves} ход.
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <p className="mt-4 text-sm text-zinc-500">
+            После начисления не забудь нажать «Сохранить».
           </p>
-        ) : null}
-      </div>
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          onClick={save}
-          disabled={saving}
-          className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
-        >
-          {saving ? "Сохраняем..." : "Сохранить"}
-        </button>
+          {rewardReasons.length > 0 ? (
+            <p className="mt-2 text-sm text-emerald-300">
+              В журнал будет записано:
+              <br />
+              {rewardReasons.join(", ")}
+            </p>
+          ) : null}
+        </div>
 
-        {currentAccessRole === "host" ? (
+        <div className="flex flex-wrap gap-3">
           <button
-            onClick={deleteMember}
-            disabled={deleting}
-            className="rounded-2xl border border-red-500/30 bg-red-500/10 px-7 py-3 font-bold text-red-300 transition hover:bg-red-500/20 disabled:opacity-50"
+            type="button"
+            onClick={save}
+            disabled={saving || deleting}
+            className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
           >
-            {deleting ? "Удаляем..." : "Удалить аккаунт"}
+            {saving ? "Сохраняем..." : "Сохранить"}
           </button>
-        ) : null}
+
+          {currentAccessRole === "host" ? (
+            <button
+              type="button"
+              onClick={() => setDeleteDialogOpen(true)}
+              disabled={deleting || saving}
+              className="rounded-2xl border border-red-500/30 bg-red-500/10 px-7 py-3 font-bold text-red-300 transition hover:bg-red-500/20 disabled:opacity-50"
+            >
+              {deleting ? "Удаляем..." : "Удалить аккаунт"}
+            </button>
+          ) : null}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

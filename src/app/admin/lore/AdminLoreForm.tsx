@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 export default function AdminLoreForm({ lore }: { lore: any[] }) {
   const [items, setItems] = useState(lore);
   const [editing, setEditing] = useState<any | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -58,124 +60,138 @@ export default function AdminLoreForm({ lore }: { lore: any[] }) {
     }
   }
 
-  async function deleteLore(id: number) {
-    if (!confirm("Точно удалить эту главу лора?")) return;
+  async function deleteLore() {
+    if (deleteId === null) return;
 
     const res = await fetch("/api/admin/lore/delete", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id: deleteId }),
     });
 
     if (res.ok) {
-      setItems((prev) => prev.filter((item) => item.id !== id));
+      setItems((prev) => prev.filter((item) => item.id !== deleteId));
       toast.success("Глава лора удалена.");
     } else {
       toast.error("Не удалось удалить лор.");
     }
+
+    setDeleteId(null);
   }
 
   return (
-    <div className="grid gap-8">
-      <div className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-8">
-        <h2 className="text-3xl font-bold">
-          {editing ? "Редактировать главу" : "Новая глава"}
-        </h2>
+    <>
+      <ConfirmDialog
+        open={deleteId !== null}
+        title="Удалить главу?"
+        description="Глава лора будет удалена. Это действие нельзя отменить."
+        confirmText="Удалить"
+        cancelText="Отмена"
+        onConfirm={deleteLore}
+        onCancel={() => setDeleteId(null)}
+      />
 
-        <input
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="Название главы"
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        />
-
-        <label className="grid gap-2">
-          <span className="text-sm text-zinc-400">Номер главы</span>
+      <div className="grid gap-8">
+        <div className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-8">
+          <h2 className="text-3xl font-bold">
+            {editing ? "Редактировать главу" : "Новая глава"}
+          </h2>
 
           <input
-            type="number"
-            min={1}
-            value={chapterNumber}
-            onChange={(event) => setChapterNumber(Number(event.target.value))}
-            placeholder="Например: 1"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Название главы"
             className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
           />
-        </label>
 
-        <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black px-4 py-3">
-          <input
-            type="checkbox"
-            checked={isFinished}
-            onChange={(event) => setIsFinished(event.target.checked)}
+          <label className="grid gap-2">
+            <span className="text-sm text-zinc-400">Номер главы</span>
+
+            <input
+              type="number"
+              min={1}
+              value={chapterNumber}
+              onChange={(event) => setChapterNumber(Number(event.target.value))}
+              placeholder="Например: 1"
+              className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+            />
+          </label>
+
+          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black px-4 py-3">
+            <input
+              type="checkbox"
+              checked={isFinished}
+              onChange={(event) => setIsFinished(event.target.checked)}
+            />
+            <span>Глава завершена</span>
+          </label>
+
+          <textarea
+            value={content}
+            onChange={(event) => setContent(event.target.value)}
+            placeholder="Текст главы"
+            rows={12}
+            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
           />
-          <span>Глава завершена</span>
-        </label>
 
-        <textarea
-          value={content}
-          onChange={(event) => setContent(event.target.value)}
-          placeholder="Текст главы"
-          rows={12}
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        />
-
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={saveLore}
-            disabled={saving}
-            className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
-          >
-            {saving ? "Сохраняем..." : "Сохранить"}
-          </button>
-
-          {editing ? (
+          <div className="flex flex-wrap gap-3">
             <button
-              onClick={clearForm}
-              className="rounded-2xl border border-white/10 bg-white/5 px-7 py-3 font-bold text-white hover:bg-white/10"
+              onClick={saveLore}
+              disabled={saving}
+              className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
             >
-              Отмена
+              {saving ? "Сохраняем..." : "Сохранить"}
             </button>
-          ) : null}
+
+            {editing ? (
+              <button
+                onClick={clearForm}
+                className="rounded-2xl border border-white/10 bg-white/5 px-7 py-3 font-bold text-white hover:bg-white/10"
+              >
+                Отмена
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className="rounded-3xl border border-white/10 bg-white/5 p-6"
+            >
+              <div className="text-sm text-zinc-500">
+                Глава: {item.chapter_number || 1} •{" "}
+                {item.is_finished ? "Завершена" : "В процессе"}
+              </div>
+
+              <h3 className="mt-2 text-2xl font-bold">{item.title}</h3>
+
+              <p className="mt-4 line-clamp-4 whitespace-pre-line text-zinc-300">
+                {item.content}
+              </p>
+
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  onClick={() => startEdit(item)}
+                  className="rounded-2xl bg-white px-5 py-2 font-bold text-black"
+                >
+                  Редактировать
+                </button>
+
+                <button
+                  onClick={() => setDeleteId(item.id)}
+                  className="rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-2 font-bold text-red-300"
+                >
+                  Удалить
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-
-      <div className="grid gap-4">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="rounded-3xl border border-white/10 bg-white/5 p-6"
-          >
-            <div className="text-sm text-zinc-500">
-              Глава: {item.chapter_number || 1} •{" "}
-              {item.is_finished ? "Завершена" : "В процессе"}
-            </div>
-
-            <h3 className="mt-2 text-2xl font-bold">{item.title}</h3>
-
-            <p className="mt-4 line-clamp-4 whitespace-pre-line text-zinc-300">
-              {item.content}
-            </p>
-
-            <div className="mt-5 flex flex-wrap gap-3">
-              <button
-                onClick={() => startEdit(item)}
-                className="rounded-2xl bg-white px-5 py-2 font-bold text-black"
-              >
-                Редактировать
-              </button>
-
-              <button
-                onClick={() => deleteLore(item.id)}
-                className="rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-2 font-bold text-red-300"
-              >
-                Удалить
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    </>
   );
 }

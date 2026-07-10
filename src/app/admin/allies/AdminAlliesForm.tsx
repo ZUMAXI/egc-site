@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 function getProfileName(profile: any) {
   return (
@@ -21,6 +22,7 @@ export default function AdminAlliesForm({
 }) {
   const [items, setItems] = useState(allies);
   const [editing, setEditing] = useState<any | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const [name, setName] = useState("");
   const [status, setStatus] = useState("🤝 Союз");
@@ -106,23 +108,25 @@ export default function AdminAlliesForm({
     }
   }
 
-  async function deleteAlly(id: number) {
-    if (!confirm("Точно удалить этот союз?")) return;
+  async function deleteAlly() {
+    if (deleteId === null) return;
 
     const res = await fetch("/api/admin/allies/delete", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id: deleteId }),
     });
 
     if (res.ok) {
-      setItems((prev) => prev.filter((item) => item.id !== id));
+      setItems((prev) => prev.filter((item) => item.id !== deleteId));
       toast.success("Союз удалён.");
     } else {
       toast.error("Не удалось удалить союз.");
     }
+
+    setDeleteId(null);
   }
 
   function getLeaderName(leaderProfileId: number | null) {
@@ -131,184 +135,209 @@ export default function AdminAlliesForm({
   }
 
   return (
-    <div className="grid gap-8">
-      <div className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-8">
-        <h2 className="text-3xl font-bold">
-          {editing ? "Редактировать союз" : "Новый союз"}
-        </h2>
+    <>
+      <ConfirmDialog
+        open={deleteId !== null}
+        title="Удалить союз?"
+        description="Союз будет удалён. Это действие нельзя отменить."
+        confirmText="Удалить"
+        cancelText="Отмена"
+        onConfirm={deleteAlly}
+        onCancel={() => setDeleteId(null)}
+      />
 
-        <input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="Название союза"
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        />
-
-        <label className="grid gap-2">
-          <span className="text-sm text-zinc-400">Статус союза</span>
-
-          <select
-            value={status}
-            onChange={(event) => setStatus(event.target.value)}
-            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-          >
-            <option>🤝 Союз</option>
-            <option>🧊 Заморозка</option>
-            <option>❌ Закрыт</option>
-            <option>⚔️ Война</option>
-            <option>⭐ Особый союз</option>
-          </select>
-        </label>
-
-        <label className="grid gap-2">
-          <span className="text-sm text-zinc-400">Лидер союза</span>
-
-          <select
-            value={leaderProfileId}
-            onChange={(event) => setLeaderProfileId(event.target.value)}
-            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-          >
-            <option value="">Не указан</option>
-
-            {profiles.map((profile) => (
-              <option key={profile.id} value={profile.id}>
-                {getProfileName(profile)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="grid gap-2">
-          <span className="text-sm text-zinc-400">Порядок отображения</span>
-          <input
-            type="number"
-            min={1}
-            value={sortOrder}
-            onChange={(event) => setSortOrder(Number(event.target.value))}
-            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-          />
-        </label>
-
-        <div className="grid gap-3 rounded-2xl border border-white/10 bg-black p-4">
-          <span className="text-sm text-zinc-400">Изображение союза</span>
+      <div className="grid gap-8">
+        <div className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-8">
+          <h2 className="text-3xl font-bold">
+            {editing ? "Редактировать союз" : "Новый союз"}
+          </h2>
 
           <input
-            type="file"
-            accept="image/*"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) uploadImage(file);
-            }}
-            className="text-sm text-zinc-300"
-          />
-
-          <input
-            value={imageUrl}
-            onChange={(event) => setImageUrl(event.target.value)}
-            placeholder="Или вставь ссылку"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Название союза"
             className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
           />
 
-          {uploading ? (
-            <p className="text-sm text-zinc-400">Загружаем...</p>
-          ) : null}
+          <label className="grid gap-2">
+            <span className="text-sm text-zinc-400">Статус союза</span>
 
-          {imageUrl ? (
-            <button
-              onClick={() => setImageUrl("")}
-              className="w-fit rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-2 font-bold text-red-300"
+            <select
+              value={status}
+              onChange={(event) => setStatus(event.target.value)}
+              className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
             >
-              Убрать изображение
-            </button>
-          ) : null}
-        </div>
+              <option>🤝 Союз</option>
+              <option>🧊 Заморозка</option>
+              <option>❌ Закрыт</option>
+              <option>⚔️ Война</option>
+              <option>⭐ Особый союз</option>
+            </select>
+          </label>
 
-        <textarea
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          placeholder="Описание союза"
-          rows={8}
-          className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-        />
+          <label className="grid gap-2">
+            <span className="text-sm text-zinc-400">Лидер союза</span>
 
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={name}
-            className="max-h-[350px] w-full rounded-2xl bg-black object-contain"
-          />
-        ) : null}
-
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={saveAlly}
-            disabled={saving || uploading}
-            className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
-          >
-            {saving ? "Сохраняем..." : "Сохранить"}
-          </button>
-
-          {editing ? (
-            <button
-              onClick={clearForm}
-              className="rounded-2xl border border-white/10 bg-white/5 px-7 py-3 font-bold text-white hover:bg-white/10"
+            <select
+              value={leaderProfileId}
+              onChange={(event) => setLeaderProfileId(event.target.value)}
+              className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
             >
-              Отмена
-            </button>
-          ) : null}
-        </div>
-      </div>
+              <option value="">Не указан</option>
 
-      <div className="grid gap-4">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="rounded-3xl border border-white/10 bg-white/5 p-6"
-          >
-            {item.image_url ? (
-              <img
-                src={item.image_url}
-                alt={item.name}
-                className="mb-5 max-h-[250px] w-full rounded-2xl bg-black object-contain"
-              />
+              {profiles.map((profile) => (
+                <option key={profile.id} value={profile.id}>
+                  {getProfileName(profile)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="grid gap-2">
+            <span className="text-sm text-zinc-400">
+              Порядок отображения
+            </span>
+
+            <input
+              type="number"
+              min={1}
+              value={sortOrder}
+              onChange={(event) => setSortOrder(Number(event.target.value))}
+              className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+            />
+          </label>
+
+          <div className="grid gap-3 rounded-2xl border border-white/10 bg-black p-4">
+            <span className="text-sm text-zinc-400">
+              Изображение союза
+            </span>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+
+                if (file) {
+                  uploadImage(file);
+                }
+              }}
+              className="text-sm text-zinc-300"
+            />
+
+            <input
+              value={imageUrl}
+              onChange={(event) => setImageUrl(event.target.value)}
+              placeholder="Или вставь ссылку"
+              className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+            />
+
+            {uploading ? (
+              <p className="text-sm text-zinc-400">Загружаем...</p>
             ) : null}
 
-            <div className="text-sm text-zinc-500">
-              Порядок: {item.sort_order || 1}
-            </div>
-
-            <h3 className="mt-2 text-2xl font-bold">{item.name}</h3>
-
-            <p className="mt-2 text-sm text-zinc-500">
-              Статус: {item.status || "🤝 Союз"}
-            </p>
-
-            <p className="mt-2 text-sm text-zinc-500">
-              Лидер: {getLeaderName(item.leader_profile_id)}
-            </p>
-
-            <p className="mt-4 whitespace-pre-line text-zinc-300">
-              {item.description}
-            </p>
-
-            <div className="mt-5 flex flex-wrap gap-3">
+            {imageUrl ? (
               <button
-                onClick={() => startEdit(item)}
-                className="rounded-2xl bg-white px-5 py-2 font-bold text-black"
+                type="button"
+                onClick={() => setImageUrl("")}
+                className="w-fit rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-2 font-bold text-red-300"
               >
-                Редактировать
+                Убрать изображение
               </button>
-
-              <button
-                onClick={() => deleteAlly(item.id)}
-                className="rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-2 font-bold text-red-300"
-              >
-                Удалить
-              </button>
-            </div>
+            ) : null}
           </div>
-        ))}
+
+          <textarea
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="Описание союза"
+            rows={8}
+            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+          />
+
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={name || "Изображение союза"}
+              className="max-h-[350px] w-full rounded-2xl bg-black object-contain"
+            />
+          ) : null}
+
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={saveAlly}
+              disabled={saving || uploading}
+              className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
+            >
+              {saving ? "Сохраняем..." : "Сохранить"}
+            </button>
+
+            {editing ? (
+              <button
+                type="button"
+                onClick={clearForm}
+                className="rounded-2xl border border-white/10 bg-white/5 px-7 py-3 font-bold text-white hover:bg-white/10"
+              >
+                Отмена
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className="rounded-3xl border border-white/10 bg-white/5 p-6"
+            >
+              {item.image_url ? (
+                <img
+                  src={item.image_url}
+                  alt={item.name}
+                  className="mb-5 max-h-[250px] w-full rounded-2xl bg-black object-contain"
+                />
+              ) : null}
+
+              <div className="text-sm text-zinc-500">
+                Порядок: {item.sort_order || 1}
+              </div>
+
+              <h3 className="mt-2 text-2xl font-bold">{item.name}</h3>
+
+              <p className="mt-2 text-sm text-zinc-500">
+                Статус: {item.status || "🤝 Союз"}
+              </p>
+
+              <p className="mt-2 text-sm text-zinc-500">
+                Лидер: {getLeaderName(item.leader_profile_id)}
+              </p>
+
+              <p className="mt-4 whitespace-pre-line text-zinc-300">
+                {item.description}
+              </p>
+
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => startEdit(item)}
+                  className="rounded-2xl bg-white px-5 py-2 font-bold text-black"
+                >
+                  Редактировать
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setDeleteId(item.id)}
+                  className="rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-2 font-bold text-red-300"
+                >
+                  Удалить
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
