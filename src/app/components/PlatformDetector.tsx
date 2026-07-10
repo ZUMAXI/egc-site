@@ -2,19 +2,22 @@
 
 import { useEffect } from "react";
 
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: {
-        platform?: string;
-        ready?: () => void;
-        expand?: () => void;
-      };
-    };
-  }
-}
+type TelegramWebApp = {
+  platform?: string;
+  version?: string;
+  ready?: () => void;
+  expand?: () => void;
+  requestFullscreen?: () => void;
+  isVersionAtLeast?: (version: string) => boolean;
+};
 
-const telegramDesktopPlatforms = [
+type TelegramWindow = Window & {
+  Telegram?: {
+    WebApp?: TelegramWebApp;
+  };
+};
+
+const desktopPlatforms = [
   "tdesktop",
   "macos",
   "weba",
@@ -22,7 +25,7 @@ const telegramDesktopPlatforms = [
   "web",
 ];
 
-const telegramMobilePlatforms = [
+const mobilePlatforms = [
   "android",
   "android_x",
   "ios",
@@ -31,49 +34,68 @@ const telegramMobilePlatforms = [
 export default function PlatformDetector() {
   useEffect(() => {
     const root = document.documentElement;
-    const telegramWebApp = window.Telegram?.WebApp;
-    const platform = telegramWebApp?.platform?.toLowerCase() || "";
+    const telegramWindow = window as TelegramWindow;
+    const telegramWebApp = telegramWindow.Telegram?.WebApp;
 
-    root.classList.remove(
-      "telegram-desktop",
-      "telegram-mobile",
-      "browser-desktop",
-      "browser-mobile"
-    );
+    const platform =
+      telegramWebApp?.platform?.toLowerCase() || "";
 
-    if (telegramWebApp) {
-      telegramWebApp.ready?.();
-      telegramWebApp.expand?.();
+    function clearClasses() {
+      root.classList.remove(
+        "telegram-desktop",
+        "telegram-mobile",
+        "browser-desktop",
+        "browser-mobile"
+      );
+    }
 
-      if (telegramMobilePlatforms.includes(platform)) {
-        root.classList.add("telegram-mobile");
-      } else if (telegramDesktopPlatforms.includes(platform)) {
-        root.classList.add("telegram-desktop");
-      } else if (window.innerWidth >= 900) {
-        root.classList.add("telegram-desktop");
+    function applyBrowserClass() {
+      clearClasses();
+
+      if (window.innerWidth >= 900) {
+        root.classList.add("browser-desktop");
       } else {
-        root.classList.add("telegram-mobile");
+        root.classList.add("browser-mobile");
       }
-
-      return;
     }
 
-    if (window.innerWidth >= 900) {
-      root.classList.add("browser-desktop");
-    } else {
-      root.classList.add("browser-mobile");
+    clearClasses();
+
+    if (!telegramWebApp) {
+      applyBrowserClass();
+
+      window.addEventListener("resize", applyBrowserClass);
+
+      return () => {
+        window.removeEventListener("resize", applyBrowserClass);
+      };
     }
 
-    function handleResize() {
-      root.classList.toggle("browser-desktop", window.innerWidth >= 900);
-      root.classList.toggle("browser-mobile", window.innerWidth < 900);
+    telegramWebApp.ready?.();
+    telegramWebApp.expand?.();
+
+    const isMobile = mobilePlatforms.includes(platform);
+    const isDesktop =
+      desktopPlatforms.includes(platform) || !isMobile;
+
+    if (isMobile) {
+      root.classList.add("telegram-mobile");
     }
 
-    window.addEventListener("resize", handleResize);
+    if (isDesktop) {
+      root.classList.add("telegram-desktop");
 
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
+      const supportsFullscreen =
+        telegramWebApp.isVersionAtLeast?.("8.0") ?? false;
+
+      if (supportsFullscreen) {
+        try {
+          telegramWebApp.requestFullscreen?.();
+        } catch (error) {
+          console.error("Не удалось открыть Mini App на весь экран:", error);
+        }
+      }
+    }
   }, []);
 
   return null;
