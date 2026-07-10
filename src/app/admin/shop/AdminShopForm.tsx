@@ -42,55 +42,80 @@ export default function AdminShopForm({ items }: { items: any[] }) {
   }
 
   async function uploadImage(file: File) {
-    setUploading(true);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const res = await fetch("/api/admin/shop/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      setImageUrl(data.url);
-      toast.success("Изображение загружено!");
-    } else {
-      toast.error("Не удалось загрузить изображение.");
+    if (!file.type.startsWith("image/")) {
+      toast.error("Выбери изображение.");
+      return;
     }
 
-    setUploading(false);
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Размер изображения не должен превышать 5 МБ.");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/shop/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        toast.error(data?.error || "Не удалось загрузить изображение.");
+        return;
+      }
+
+      setImageUrl(data.url);
+      toast.success("Изображение загружено!");
+    } catch {
+      toast.error("Ошибка при загрузке изображения.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function saveItem() {
+    if (saving || uploading) return;
+
     setSaving(true);
 
-    const res = await fetch("/api/admin/shop/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: editing?.id,
-        name,
-        description,
-        image_url: imageUrl,
-        price_steps: priceSteps,
-        price_moves: priceMoves,
-        sort_order: sortOrder,
-        is_available: isAvailable,
-      }),
-    });
+    try {
+      const res = await fetch("/api/admin/shop/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: editing?.id,
+          name,
+          description,
+          image_url: imageUrl,
+          price_steps: priceSteps,
+          price_moves: priceMoves,
+          sort_order: sortOrder,
+          is_available: isAvailable,
+        }),
+      });
 
-    if (res.ok) {
-      toast.success(editing ? "Товар сохранён!" : "Товар создан!");
+      const data = await res.json().catch(() => null);
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
-    } else {
-      toast.error("Не удалось сохранить товар.");
+      if (res.ok) {
+        toast.success(editing ? "Товар сохранён!" : "Товар создан!");
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
+      } else {
+        toast.error(data?.error || "Не удалось сохранить товар.");
+        setSaving(false);
+      }
+    } catch {
+      toast.error("Ошибка при сохранении товара.");
       setSaving(false);
     }
   }
@@ -170,7 +195,10 @@ export default function AdminShopForm({ items }: { items: any[] }) {
           </div>
 
           <label className="grid gap-2">
-            <span className="text-sm text-zinc-400">Порядок отображения</span>
+            <span className="text-sm text-zinc-400">
+              Порядок отображения
+            </span>
+
             <input
               type="number"
               min={1}
@@ -186,21 +214,51 @@ export default function AdminShopForm({ items }: { items: any[] }) {
               checked={isAvailable}
               onChange={(event) => setIsAvailable(event.target.checked)}
             />
+
             <span>Товар доступен</span>
           </label>
 
-          <div className="grid gap-3 rounded-2xl border border-white/10 bg-black p-4">
-            <span className="text-sm text-zinc-400">Изображение товара</span>
+          <div className="grid gap-4 rounded-2xl border border-white/10 bg-black p-4">
+            <span className="text-sm text-zinc-400">
+              Изображение товара
+            </span>
 
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) uploadImage(file);
-              }}
-              className="text-sm text-zinc-300"
-            />
+            <div className="flex flex-wrap items-center gap-4">
+              <label className="w-fit cursor-pointer rounded-2xl bg-white px-6 py-3 font-bold text-black transition hover:scale-105">
+                {uploading ? "Загружаем..." : "Выбрать изображение"}
+
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  disabled={uploading || saving}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+
+                    if (file) {
+                      uploadImage(file);
+                    }
+
+                    event.target.value = "";
+                  }}
+                  className="hidden"
+                />
+              </label>
+
+              {imageUrl ? (
+                <button
+                  type="button"
+                  onClick={() => setImageUrl("")}
+                  disabled={uploading || saving}
+                  className="rounded-2xl border border-red-500/30 bg-red-500/10 px-6 py-3 font-bold text-red-300 transition hover:bg-red-500/20 disabled:opacity-50"
+                >
+                  Убрать изображение
+                </button>
+              ) : null}
+            </div>
+
+            <p className="text-sm text-zinc-500">
+              Поддерживаются PNG, JPG, WEBP и GIF. Максимальный размер — 5 МБ.
+            </p>
 
             <input
               value={imageUrl}
@@ -208,42 +266,40 @@ export default function AdminShopForm({ items }: { items: any[] }) {
               placeholder="Или вставь ссылку"
               className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
             />
-
-            {uploading ? (
-              <p className="text-sm text-zinc-400">Загружаем...</p>
-            ) : null}
-
-            {imageUrl ? (
-              <button
-                onClick={() => setImageUrl("")}
-                className="w-fit rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-2 font-bold text-red-300"
-              >
-                Убрать изображение
-              </button>
-            ) : null}
           </div>
 
           {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={name}
-              className="max-h-[350px] w-full rounded-2xl bg-black object-contain"
-            />
+            <div className="grid gap-3">
+              <span className="text-sm text-zinc-400">Предпросмотр</span>
+
+              <img
+                src={imageUrl}
+                alt={name || "Изображение товара"}
+                className="max-h-[350px] w-full rounded-2xl border border-white/10 bg-black object-contain"
+              />
+            </div>
           ) : null}
 
           <div className="flex flex-wrap gap-3">
             <button
+              type="button"
               onClick={saveItem}
               disabled={saving || uploading}
               className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
             >
-              {saving ? "Сохраняем..." : "Сохранить"}
+              {uploading
+                ? "Загружаем изображение..."
+                : saving
+                  ? "Сохраняем..."
+                  : "Сохранить"}
             </button>
 
             {editing ? (
               <button
+                type="button"
                 onClick={clearForm}
-                className="rounded-2xl border border-white/10 bg-white/5 px-7 py-3 font-bold text-white hover:bg-white/10"
+                disabled={saving || uploading}
+                className="rounded-2xl border border-white/10 bg-white/5 px-7 py-3 font-bold text-white hover:bg-white/10 disabled:opacity-50"
               >
                 Отмена
               </button>
@@ -280,6 +336,7 @@ export default function AdminShopForm({ items }: { items: any[] }) {
                 <span className="rounded-full bg-white/10 px-3 py-1">
                   👣 {item.price_steps || 0}
                 </span>
+
                 <span className="rounded-full bg-white/10 px-3 py-1">
                   ♟ {item.price_moves || 0}
                 </span>
@@ -287,6 +344,7 @@ export default function AdminShopForm({ items }: { items: any[] }) {
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <button
+                  type="button"
                   onClick={() => startEdit(item)}
                   className="rounded-2xl bg-white px-5 py-2 font-bold text-black"
                 >
@@ -294,6 +352,7 @@ export default function AdminShopForm({ items }: { items: any[] }) {
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setDeleteId(item.id)}
                   className="rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-2 font-bold text-red-300"
                 >

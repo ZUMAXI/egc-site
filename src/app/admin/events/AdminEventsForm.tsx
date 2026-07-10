@@ -51,58 +51,83 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
   }
 
   async function uploadImage(file: File) {
-    setUploading(true);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const res = await fetch("/api/admin/events/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      setImageUrl(data.url);
-      toast.success("Изображение загружено!");
-    } else {
-      toast.error("Не удалось загрузить изображение.");
+    if (!file.type.startsWith("image/")) {
+      toast.error("Выбери изображение.");
+      return;
     }
 
-    setUploading(false);
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Размер изображения не должен превышать 5 МБ.");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/events/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        toast.error(data?.error || "Не удалось загрузить изображение.");
+        return;
+      }
+
+      setImageUrl(data.url);
+      toast.success("Изображение загружено!");
+    } catch {
+      toast.error("Ошибка при загрузке изображения.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function saveEvent() {
+    if (saving || uploading) return;
+
     setSaving(true);
 
-    const res = await fetch("/api/admin/events/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: editing?.id,
-        title,
-        type,
-        weekday,
-        start_time: startTime,
-        event_date: eventDate,
-        status,
-        reward_steps: rewardSteps,
-        reward_moves: rewardMoves,
-        description,
-        image_url: imageUrl,
-      }),
-    });
+    try {
+      const res = await fetch("/api/admin/events/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: editing?.id,
+          title,
+          type,
+          weekday,
+          start_time: startTime,
+          event_date: eventDate,
+          status,
+          reward_steps: rewardSteps,
+          reward_moves: rewardMoves,
+          description,
+          image_url: imageUrl,
+        }),
+      });
 
-    if (res.ok) {
-      toast.success(editing ? "Событие сохранено!" : "Событие создано!");
+      const data = await res.json().catch(() => null);
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
-    } else {
-      toast.error("Не удалось сохранить событие.");
+      if (res.ok) {
+        toast.success(editing ? "Событие сохранено!" : "Событие создано!");
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
+      } else {
+        toast.error(data?.error || "Не удалось сохранить событие.");
+        setSaving(false);
+      }
+    } catch {
+      toast.error("Ошибка при сохранении события.");
       setSaving(false);
     }
   }
@@ -215,23 +240,47 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
             />
           </div>
 
-          <div className="grid gap-3 rounded-2xl border border-white/10 bg-black p-4">
+          <div className="grid gap-4 rounded-2xl border border-white/10 bg-black p-4">
             <span className="text-sm text-zinc-400">
               Изображение события
             </span>
 
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
+            <div className="flex flex-wrap items-center gap-4">
+              <label className="w-fit cursor-pointer rounded-2xl bg-white px-6 py-3 font-bold text-black transition hover:scale-105">
+                {uploading ? "Загружаем..." : "Выбрать изображение"}
 
-                if (file) {
-                  uploadImage(file);
-                }
-              }}
-              className="text-sm text-zinc-300"
-            />
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  disabled={uploading || saving}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+
+                    if (file) {
+                      uploadImage(file);
+                    }
+
+                    event.target.value = "";
+                  }}
+                  className="hidden"
+                />
+              </label>
+
+              {imageUrl ? (
+                <button
+                  type="button"
+                  onClick={() => setImageUrl("")}
+                  disabled={uploading || saving}
+                  className="rounded-2xl border border-red-500/30 bg-red-500/10 px-6 py-3 font-bold text-red-300 transition hover:bg-red-500/20 disabled:opacity-50"
+                >
+                  Убрать изображение
+                </button>
+              ) : null}
+            </div>
+
+            <p className="text-sm text-zinc-500">
+              Поддерживаются PNG, JPG, WEBP и GIF. Максимальный размер — 5 МБ.
+            </p>
 
             <input
               value={imageUrl}
@@ -239,21 +288,19 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
               placeholder="Или вставь ссылку"
               className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
             />
-
-            {uploading ? (
-              <p className="text-sm text-zinc-400">Загружаем...</p>
-            ) : null}
-
-            {imageUrl ? (
-              <button
-                type="button"
-                onClick={() => setImageUrl("")}
-                className="w-fit rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-2 font-bold text-red-300"
-              >
-                Убрать изображение
-              </button>
-            ) : null}
           </div>
+
+          {imageUrl ? (
+            <div className="grid gap-3">
+              <span className="text-sm text-zinc-400">Предпросмотр</span>
+
+              <img
+                src={imageUrl}
+                alt={title || "Изображение события"}
+                className="max-h-[350px] w-full rounded-2xl border border-white/10 bg-black object-contain"
+              />
+            </div>
+          ) : null}
 
           <textarea
             value={description}
@@ -263,14 +310,6 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
             className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
           />
 
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={title || "Изображение события"}
-              className="max-h-[350px] w-full rounded-2xl bg-black object-contain"
-            />
-          ) : null}
-
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
@@ -278,14 +317,19 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
               disabled={saving || uploading}
               className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
             >
-              {saving ? "Сохраняем..." : "Сохранить"}
+              {uploading
+                ? "Загружаем изображение..."
+                : saving
+                  ? "Сохраняем..."
+                  : "Сохранить"}
             </button>
 
             {editing ? (
               <button
                 type="button"
                 onClick={clearForm}
-                className="rounded-2xl border border-white/10 bg-white/5 px-7 py-3 font-bold text-white hover:bg-white/10"
+                disabled={saving || uploading}
+                className="rounded-2xl border border-white/10 bg-white/5 px-7 py-3 font-bold text-white hover:bg-white/10 disabled:opacity-50"
               >
                 Отмена
               </button>
