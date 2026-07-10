@@ -3,6 +3,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import ConfirmDialog from "../components/ConfirmDialog";
+import RichTextEditor from "../../components/RichTextEditor";
 
 export default function AdminRulesForm({ rules }: { rules: any[] }) {
   const [items, setItems] = useState(rules);
@@ -29,29 +30,48 @@ export default function AdminRulesForm({ rules }: { rules: any[] }) {
   }
 
   async function saveRule() {
+    if (saving) return;
+
+    if (!title.trim()) {
+      toast.error("Укажи название раздела.");
+      return;
+    }
+
+    if (!content.trim() || content === "<p></p>") {
+      toast.error("Добавь текст правила.");
+      return;
+    }
+
     setSaving(true);
 
-    const res = await fetch("/api/admin/rules/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: editing?.id,
-        title,
-        content,
-        sort_order: sortOrder,
-      }),
-    });
+    try {
+      const res = await fetch("/api/admin/rules/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: editing?.id,
+          title,
+          content,
+          sort_order: sortOrder,
+        }),
+      });
 
-    if (res.ok) {
-      toast.success(editing ? "Правило сохранено!" : "Правило создано!");
+      const data = await res.json().catch(() => null);
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
-    } else {
-      toast.error("Не удалось сохранить правило.");
+      if (res.ok) {
+        toast.success(editing ? "Правило сохранено!" : "Правило создано!");
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
+      } else {
+        toast.error(data?.error || "Не удалось сохранить правило.");
+        setSaving(false);
+      }
+    } catch {
+      toast.error("Ошибка при сохранении правила.");
       setSaving(false);
     }
   }
@@ -112,18 +132,21 @@ export default function AdminRulesForm({ rules }: { rules: any[] }) {
               min={1}
               value={sortOrder}
               onChange={(event) => setSortOrder(Number(event.target.value))}
-              placeholder="Например: 1"
               className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
             />
           </label>
 
-          <textarea
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-            placeholder="Текст правил"
-            rows={10}
-            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-          />
+          <div className="grid gap-2">
+            <span className="text-sm text-zinc-400">
+              Текст правила
+            </span>
+
+            <RichTextEditor
+              value={content}
+              onChange={setContent}
+              placeholder="Напиши правила..."
+            />
+          </div>
 
           <div className="flex flex-wrap gap-3">
             <button
@@ -139,7 +162,8 @@ export default function AdminRulesForm({ rules }: { rules: any[] }) {
               <button
                 type="button"
                 onClick={clearForm}
-                className="rounded-2xl border border-white/10 bg-white/5 px-7 py-3 font-bold text-white hover:bg-white/10"
+                disabled={saving}
+                className="rounded-2xl border border-white/10 bg-white/5 px-7 py-3 font-bold text-white hover:bg-white/10 disabled:opacity-50"
               >
                 Отмена
               </button>
@@ -157,11 +181,33 @@ export default function AdminRulesForm({ rules }: { rules: any[] }) {
                 Порядок: {rule.sort_order || 1}
               </div>
 
-              <h3 className="mt-2 text-2xl font-bold">{rule.title}</h3>
+              <h3 className="mt-2 text-2xl font-bold">
+                {rule.title}
+              </h3>
 
-              <p className="mt-4 whitespace-pre-line text-zinc-300">
-                {rule.content}
-              </p>
+              <div
+                className={[
+                  "mt-4 line-clamp-5 text-zinc-300",
+                  "[&_p]:my-2",
+                  "[&_h1]:text-3xl",
+                  "[&_h2]:text-2xl",
+                  "[&_h3]:text-xl",
+                  "[&_strong]:font-bold",
+                  "[&_ul]:list-disc",
+                  "[&_ul]:pl-6",
+                  "[&_ol]:list-decimal",
+                  "[&_ol]:pl-6",
+                  "[&_blockquote]:border-l-4",
+                  "[&_blockquote]:border-white/20",
+                  "[&_blockquote]:pl-4",
+                  "[&_blockquote]:italic",
+                  "[&_a]:text-blue-400",
+                  "[&_a]:underline",
+                ].join(" ")}
+                dangerouslySetInnerHTML={{
+                  __html: rule.content || "",
+                }}
+              />
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <button
