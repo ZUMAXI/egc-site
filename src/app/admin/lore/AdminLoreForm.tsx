@@ -3,6 +3,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import ConfirmDialog from "../components/ConfirmDialog";
+import RichTextEditor from "../../components/RichTextEditor";
 
 export default function AdminLoreForm({ lore }: { lore: any[] }) {
   const [items, setItems] = useState(lore);
@@ -32,30 +33,51 @@ export default function AdminLoreForm({ lore }: { lore: any[] }) {
   }
 
   async function saveLore() {
+    if (saving) return;
+
+    if (!title.trim()) {
+      toast.error("Укажи название главы.");
+      return;
+    }
+
+    if (!content.trim() || content === "<p></p>") {
+      toast.error("Добавь текст главы.");
+      return;
+    }
+
     setSaving(true);
 
-    const res = await fetch("/api/admin/lore/save", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: editing?.id,
-        title,
-        content,
-        chapter_number: chapterNumber,
-        is_finished: isFinished,
-      }),
-    });
+    try {
+      const res = await fetch("/api/admin/lore/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: editing?.id,
+          title,
+          content,
+          chapter_number: chapterNumber,
+          is_finished: isFinished,
+        }),
+      });
 
-    if (res.ok) {
-      toast.success(editing ? "Глава лора сохранена!" : "Глава лора создана!");
+      const data = await res.json().catch(() => null);
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
-    } else {
-      toast.error("Не удалось сохранить лор.");
+      if (res.ok) {
+        toast.success(
+          editing ? "Глава лора сохранена!" : "Глава лора создана!"
+        );
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
+      } else {
+        toast.error(data?.error || "Не удалось сохранить лор.");
+        setSaving(false);
+      }
+    } catch {
+      toast.error("Ошибка при сохранении лора.");
       setSaving(false);
     }
   }
@@ -113,7 +135,9 @@ export default function AdminLoreForm({ lore }: { lore: any[] }) {
               type="number"
               min={1}
               value={chapterNumber}
-              onChange={(event) => setChapterNumber(Number(event.target.value))}
+              onChange={(event) =>
+                setChapterNumber(Number(event.target.value))
+              }
               placeholder="Например: 1"
               className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
             />
@@ -125,19 +149,23 @@ export default function AdminLoreForm({ lore }: { lore: any[] }) {
               checked={isFinished}
               onChange={(event) => setIsFinished(event.target.checked)}
             />
+
             <span>Глава завершена</span>
           </label>
 
-          <textarea
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-            placeholder="Текст главы"
-            rows={12}
-            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-          />
+          <div className="grid gap-2">
+            <span className="text-sm text-zinc-400">Текст главы</span>
+
+            <RichTextEditor
+              value={content}
+              onChange={setContent}
+              placeholder="Напиши текст главы..."
+            />
+          </div>
 
           <div className="flex flex-wrap gap-3">
             <button
+              type="button"
               onClick={saveLore}
               disabled={saving}
               className="rounded-2xl bg-white px-7 py-3 font-bold text-black transition hover:scale-105 disabled:opacity-50"
@@ -147,8 +175,10 @@ export default function AdminLoreForm({ lore }: { lore: any[] }) {
 
             {editing ? (
               <button
+                type="button"
                 onClick={clearForm}
-                className="rounded-2xl border border-white/10 bg-white/5 px-7 py-3 font-bold text-white hover:bg-white/10"
+                disabled={saving}
+                className="rounded-2xl border border-white/10 bg-white/5 px-7 py-3 font-bold text-white hover:bg-white/10 disabled:opacity-50"
               >
                 Отмена
               </button>
@@ -169,12 +199,35 @@ export default function AdminLoreForm({ lore }: { lore: any[] }) {
 
               <h3 className="mt-2 text-2xl font-bold">{item.title}</h3>
 
-              <p className="mt-4 line-clamp-4 whitespace-pre-line text-zinc-300">
-                {item.content}
-              </p>
+              <div
+                className={[
+                  "mt-4 line-clamp-4 text-zinc-300",
+                  "[&_p]:my-2",
+                  "[&_h1]:text-3xl",
+                  "[&_h1]:font-black",
+                  "[&_h2]:text-2xl",
+                  "[&_h2]:font-black",
+                  "[&_h3]:text-xl",
+                  "[&_h3]:font-bold",
+                  "[&_ul]:list-disc",
+                  "[&_ul]:pl-6",
+                  "[&_ol]:list-decimal",
+                  "[&_ol]:pl-6",
+                  "[&_blockquote]:border-l-4",
+                  "[&_blockquote]:border-white/20",
+                  "[&_blockquote]:pl-4",
+                  "[&_blockquote]:italic",
+                  "[&_a]:text-blue-400",
+                  "[&_a]:underline",
+                ].join(" ")}
+                dangerouslySetInnerHTML={{
+                  __html: item.content || "",
+                }}
+              />
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <button
+                  type="button"
                   onClick={() => startEdit(item)}
                   className="rounded-2xl bg-white px-5 py-2 font-bold text-black"
                 >
@@ -182,6 +235,7 @@ export default function AdminLoreForm({ lore }: { lore: any[] }) {
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setDeleteId(item.id)}
                   className="rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-2 font-bold text-red-300"
                 >
