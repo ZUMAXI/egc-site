@@ -3,6 +3,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import ConfirmDialog from "../components/ConfirmDialog";
+import RichTextEditor from "../../components/RichTextEditor";
 
 export default function AdminNewsForm({ news }: { news: any[] }) {
   const [items, setItems] = useState(news);
@@ -72,6 +73,16 @@ export default function AdminNewsForm({ news }: { news: any[] }) {
 
   async function saveNews() {
     if (saving || uploading) return;
+
+    if (!title.trim()) {
+      toast.error("Укажи заголовок новости.");
+      return;
+    }
+
+    if (!content.trim() || content === "<p></p>") {
+      toast.error("Добавь текст новости.");
+      return;
+    }
 
     setSaving(true);
 
@@ -223,13 +234,15 @@ export default function AdminNewsForm({ news }: { news: any[] }) {
             </div>
           ) : null}
 
-          <textarea
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-            placeholder="Текст новости"
-            rows={7}
-            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-          />
+          <div className="grid gap-2">
+            <span className="text-sm text-zinc-400">Текст новости</span>
+
+            <RichTextEditor
+              value={content}
+              onChange={setContent}
+              placeholder="Напиши текст новости..."
+            />
+          </div>
 
           <div className="flex flex-wrap gap-3">
             <button
@@ -278,9 +291,12 @@ export default function AdminNewsForm({ news }: { news: any[] }) {
                 Автор: {item.author || "EgC"}
               </p>
 
-              <p className="mt-4 line-clamp-3 whitespace-pre-line text-zinc-300">
-                {item.content}
-              </p>
+              <div
+                className="mt-4 line-clamp-4 text-zinc-300"
+                dangerouslySetInnerHTML={{
+                  __html: item.content || "",
+                }}
+              />
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <button
