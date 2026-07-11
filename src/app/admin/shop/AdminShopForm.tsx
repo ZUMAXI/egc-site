@@ -3,6 +3,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import ConfirmDialog from "../components/ConfirmDialog";
+import RichTextEditor from "../../components/RichTextEditor";
 
 export default function AdminShopForm({ items }: { items: any[] }) {
   const [list, setList] = useState(items);
@@ -28,6 +29,11 @@ export default function AdminShopForm({ items }: { items: any[] }) {
     setPriceMoves(item.price_moves || 0);
     setSortOrder(item.sort_order || 1);
     setIsAvailable(item.is_available ?? true);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   function clearForm() {
@@ -82,6 +88,26 @@ export default function AdminShopForm({ items }: { items: any[] }) {
   async function saveItem() {
     if (saving || uploading) return;
 
+    if (!name.trim()) {
+      toast.error("Укажи название товара.");
+      return;
+    }
+
+    if (!description.trim() || description === "<p></p>") {
+      toast.error("Добавь описание товара.");
+      return;
+    }
+
+    if (!Number.isFinite(sortOrder) || sortOrder < 1) {
+      toast.error("Порядок должен быть больше нуля.");
+      return;
+    }
+
+    if (priceSteps < 0 || priceMoves < 0) {
+      toast.error("Цена товара не может быть отрицательной.");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -104,16 +130,17 @@ export default function AdminShopForm({ items }: { items: any[] }) {
 
       const data = await res.json().catch(() => null);
 
-      if (res.ok) {
-        toast.success(editing ? "Товар сохранён!" : "Товар создан!");
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 800);
-      } else {
+      if (!res.ok) {
         toast.error(data?.error || "Не удалось сохранить товар.");
         setSaving(false);
+        return;
       }
+
+      toast.success(editing ? "Товар сохранён!" : "Товар создан!");
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     } catch {
       toast.error("Ошибка при сохранении товара.");
       setSaving(false);
@@ -123,22 +150,30 @@ export default function AdminShopForm({ items }: { items: any[] }) {
   async function deleteItem() {
     if (deleteId === null) return;
 
-    const res = await fetch("/api/admin/shop/delete", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id: deleteId }),
-    });
+    try {
+      const res = await fetch("/api/admin/shop/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: deleteId }),
+      });
 
-    if (res.ok) {
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        toast.error(data?.error || "Не удалось удалить товар.");
+        setDeleteId(null);
+        return;
+      }
+
       setList((prev) => prev.filter((item) => item.id !== deleteId));
       toast.success("Товар удалён.");
-    } else {
-      toast.error("Не удалось удалить товар.");
+      setDeleteId(null);
+    } catch {
+      toast.error("Ошибка при удалении товара.");
+      setDeleteId(null);
     }
-
-    setDeleteId(null);
   }
 
   return (
@@ -166,20 +201,26 @@ export default function AdminShopForm({ items }: { items: any[] }) {
             className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
           />
 
-          <textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="Описание товара"
-            rows={6}
-            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-          />
+          <div className="grid gap-2">
+            <span className="text-sm text-zinc-400">
+              Описание товара
+            </span>
+
+            <RichTextEditor
+              value={description}
+              onChange={setDescription}
+              placeholder="Напиши описание товара..."
+            />
+          </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <input
               type="number"
               min={0}
               value={priceSteps}
-              onChange={(event) => setPriceSteps(Number(event.target.value))}
+              onChange={(event) =>
+                setPriceSteps(Number(event.target.value))
+              }
               placeholder="Цена в шагах"
               className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
             />
@@ -188,7 +229,9 @@ export default function AdminShopForm({ items }: { items: any[] }) {
               type="number"
               min={0}
               value={priceMoves}
-              onChange={(event) => setPriceMoves(Number(event.target.value))}
+              onChange={(event) =>
+                setPriceMoves(Number(event.target.value))
+              }
               placeholder="Цена в ходах"
               className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
             />
@@ -203,7 +246,9 @@ export default function AdminShopForm({ items }: { items: any[] }) {
               type="number"
               min={1}
               value={sortOrder}
-              onChange={(event) => setSortOrder(Number(event.target.value))}
+              onChange={(event) =>
+                setSortOrder(Number(event.target.value))
+              }
               className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
             />
           </label>
@@ -270,7 +315,9 @@ export default function AdminShopForm({ items }: { items: any[] }) {
 
           {imageUrl ? (
             <div className="grid gap-3">
-              <span className="text-sm text-zinc-400">Предпросмотр</span>
+              <span className="text-sm text-zinc-400">
+                Предпросмотр
+              </span>
 
               <img
                 src={imageUrl}
@@ -326,11 +373,39 @@ export default function AdminShopForm({ items }: { items: any[] }) {
                 {item.is_available ? "Доступен" : "Скрыт"}
               </div>
 
-              <h3 className="mt-2 text-2xl font-bold">{item.name}</h3>
+              <h3 className="mt-2 text-2xl font-bold">
+                {item.name}
+              </h3>
 
-              <p className="mt-4 whitespace-pre-line text-zinc-300">
-                {item.description}
-              </p>
+              <div
+                className={[
+                  "mt-4 line-clamp-5 text-zinc-300",
+                  "[&_p]:my-2",
+                  "[&_h1]:text-3xl",
+                  "[&_h1]:font-black",
+                  "[&_h2]:text-2xl",
+                  "[&_h2]:font-black",
+                  "[&_h3]:text-xl",
+                  "[&_h3]:font-bold",
+                  "[&_strong]:font-bold",
+                  "[&_em]:italic",
+                  "[&_u]:underline",
+                  "[&_s]:line-through",
+                  "[&_ul]:list-disc",
+                  "[&_ul]:pl-6",
+                  "[&_ol]:list-decimal",
+                  "[&_ol]:pl-6",
+                  "[&_blockquote]:border-l-4",
+                  "[&_blockquote]:border-white/20",
+                  "[&_blockquote]:pl-4",
+                  "[&_blockquote]:italic",
+                  "[&_a]:text-blue-400",
+                  "[&_a]:underline",
+                ].join(" ")}
+                dangerouslySetInnerHTML={{
+                  __html: item.description || "",
+                }}
+              />
 
               <div className="mt-4 flex flex-wrap gap-3 text-sm">
                 <span className="rounded-full bg-white/10 px-3 py-1">
