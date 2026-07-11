@@ -45,7 +45,9 @@ export async function sendTelegramMessage({
             [
               {
                 text: button.text,
-                url: button.url,
+                web_app: {
+                  url: button.url,
+                },
               },
             ],
           ],
