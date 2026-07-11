@@ -1,6 +1,10 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import {
+  escapeTelegramHtml,
+  sendTelegramMessage,
+} from "@/lib/telegramBot";
 
 function getName(profile: any) {
   return (
@@ -11,155 +15,331 @@ function getName(profile: any) {
   );
 }
 
+function formatDelta(value: number) {
+  return `${value >= 0 ? "+" : ""}${value}`;
+}
+
 export async function POST(request: NextRequest) {
-  const cookieStore = await cookies();
-  const telegramId = cookieStore.get("egc_user")?.value;
+  try {
+    const cookieStore = await cookies();
+    const telegramId = cookieStore.get("egc_user")?.value;
 
-  if (!telegramId) {
-    return NextResponse.json({ error: "Not logged in" }, { status: 401 });
-  }
+    if (!telegramId) {
+      return NextResponse.json(
+        { error: "Not logged in" },
+        { status: 401 }
+      );
+    }
 
-  const { data: currentUser } = await supabaseAdmin
-    .from("profiles")
-    .select("id, nickname, telegram_name, telegram_username, access_role")
-    .eq("telegram_id", telegramId)
-    .single();
+    const { data: currentUser, error: currentUserError } =
+      await supabaseAdmin
+        .from("profiles")
+        .select(
+          "id, nickname, telegram_name, telegram_username, access_role"
+        )
+        .eq("telegram_id", telegramId)
+        .maybeSingle();
 
-  const currentAccessRole = currentUser?.access_role || "guest";
+    if (currentUserError) {
+      console.error("Current user error:", currentUserError);
 
-  if (currentAccessRole !== "host" && currentAccessRole !== "admin") {
-    return NextResponse.json({ error: "No access" }, { status: 403 });
-  }
+      return NextResponse.json(
+        { error: "Не удалось проверить администратора." },
+        { status: 500 }
+      );
+    }
 
-  const body = await request.json();
+    const currentAccessRole = currentUser?.access_role || "guest";
 
-  const { data: oldProfile } = await supabaseAdmin
-    .from("profiles")
-    .select("*")
-    .eq("id", body.id)
-    .single();
+    if (
+      currentAccessRole !== "host" &&
+      currentAccessRole !== "admin"
+    ) {
+      return NextResponse.json(
+        { error: "No access" },
+        { status: 403 }
+      );
+    }
 
-  if (!oldProfile) {
-    return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-  }
+    const body = await request.json();
 
-  const updateData: any = {
-    position: body.position,
-    rank: body.rank || "ГОСТЬ",
-    steps: body.steps,
-    moves: body.moves,
-    bio: body.bio,
-    avatar_url: body.avatar_url,
-  };
+    const { data: oldProfile, error: oldProfileError } =
+      await supabaseAdmin
+        .from("profiles")
+        .select("*")
+        .eq("id", body.id)
+        .maybeSingle();
 
-  if (currentAccessRole === "host") {
-    updateData.access_role = body.access_role;
-  }
+    if (oldProfileError) {
+      console.error("Old profile error:", oldProfileError);
 
-  const result = await supabaseAdmin
-    .from("profiles")
-    .update(updateData)
-    .eq("id", body.id);
+      return NextResponse.json(
+        { error: "Не удалось получить профиль участника." },
+        { status: 500 }
+      );
+    }
 
-  if (result.error) {
-    return NextResponse.json({ error: result.error.message }, { status: 500 });
-  }
+    if (!oldProfile) {
+      return NextResponse.json(
+        { error: "Profile not found" },
+        { status: 404 }
+      );
+    }
 
-  const adminName = getName(currentUser);
-  const targetName = getName(oldProfile);
-  const logs: any[] = [];
+    const updateData: any = {
+      position: body.position,
+      rank: body.rank || "ГОСТЬ",
+      steps: Number(body.steps || 0),
+      moves: Number(body.moves || 0),
+      bio: body.bio,
+      avatar_url: body.avatar_url,
+    };
 
-  function addLog(data: any) {
-    logs.push({
-      admin_profile_id: currentUser?.id || null,
-      admin_name: adminName,
-      ...data,
-    });
-  }
+    if (currentAccessRole === "host") {
+      updateData.access_role = body.access_role;
+    }
 
-  if (oldProfile.position !== updateData.position) {
-    addLog({
-      action_type: "position",
-      target_name: targetName,
-      old_value: oldProfile.position || "Guest",
-      new_value: updateData.position || "Guest",
-      action: `Изменил должность участника "${targetName}": "${oldProfile.position || "Guest"}" → "${updateData.position || "Guest"}"`,
-    });
-  }
+    const { data: updatedProfile, error: updateError } =
+      await supabaseAdmin
+        .from("profiles")
+        .update(updateData)
+        .eq("id", body.id)
+        .select("*")
+        .single();
 
-  if (oldProfile.rank !== updateData.rank) {
-    addLog({
-      action_type: "rank",
-      target_name: targetName,
-      old_value: oldProfile.rank || "ГОСТЬ",
-      new_value: updateData.rank || "ГОСТЬ",
-      action: `Изменил ранг участника "${targetName}": "${oldProfile.rank || "ГОСТЬ"}" → "${updateData.rank || "ГОСТЬ"}"`,
-    });
-  }
+    if (updateError) {
+      console.error("Profile update error:", updateError);
 
-  if (
-    currentAccessRole === "host" &&
-    oldProfile.access_role !== updateData.access_role
-  ) {
-    addLog({
-      action_type: "access",
-      target_name: targetName,
-      old_value: oldProfile.access_role || "guest",
-      new_value: updateData.access_role || "guest",
-      action: `Изменил доступ участника "${targetName}": "${oldProfile.access_role || "guest"}" → "${updateData.access_role || "guest"}"`,
-    });
-  }
+      return NextResponse.json(
+        { error: updateError.message },
+        { status: 500 }
+      );
+    }
 
-  const oldSteps = Number(oldProfile.steps || 0);
-  const newSteps = Number(updateData.steps || 0);
-  const oldMoves = Number(oldProfile.moves || 0);
-  const newMoves = Number(updateData.moves || 0);
+    const adminName = getName(currentUser);
+    const targetName = getName(oldProfile);
+    const logs: any[] = [];
 
-  if (oldSteps !== newSteps || oldMoves !== newMoves) {
+    function addLog(data: any) {
+      logs.push({
+        admin_profile_id: currentUser?.id || null,
+        admin_name: adminName,
+        ...data,
+      });
+    }
+
+    const oldSteps = Number(oldProfile.steps || 0);
+    const newSteps = Number(updatedProfile.steps || 0);
+    const oldMoves = Number(oldProfile.moves || 0);
+    const newMoves = Number(updatedProfile.moves || 0);
+
     const stepsDiff = newSteps - oldSteps;
     const movesDiff = newMoves - oldMoves;
 
-    if (body.reward_reason) {
+    const positionChanged =
+      oldProfile.position !== updatedProfile.position;
+
+    const rankChanged =
+      oldProfile.rank !== updatedProfile.rank;
+
+    const accessChanged =
+      currentAccessRole === "host" &&
+      oldProfile.access_role !== updatedProfile.access_role;
+
+    const currencyChanged =
+      oldSteps !== newSteps || oldMoves !== newMoves;
+
+    if (positionChanged) {
       addLog({
-        action_type: "reward",
+        action_type: "position",
         target_name: targetName,
-        reward_reason: body.reward_reason,
-        steps_delta: stepsDiff,
-        moves_delta: movesDiff,
-        action: `Начислил награду "${body.reward_reason}" участнику "${targetName}": шаги ${stepsDiff >= 0 ? "+" : ""}${stepsDiff}, ходы ${movesDiff >= 0 ? "+" : ""}${movesDiff}`,
-      });
-    } else {
-      addLog({
-        action_type: "currency",
-        target_name: targetName,
-        old_value: `Шаги ${oldSteps}, ходы ${oldMoves}`,
-        new_value: `Шаги ${newSteps}, ходы ${newMoves}`,
-        steps_delta: stepsDiff,
-        moves_delta: movesDiff,
-        action: `Вручную изменил валюту участника "${targetName}": шаги ${oldSteps} → ${newSteps}, ходы ${oldMoves} → ${newMoves}`,
+        old_value: oldProfile.position || "Guest",
+        new_value: updatedProfile.position || "Guest",
+        action: `Изменил должность участника "${targetName}": "${
+          oldProfile.position || "Guest"
+        }" → "${updatedProfile.position || "Guest"}"`,
       });
     }
-  }
 
-  if (oldProfile.bio !== updateData.bio) {
-    addLog({
-      action_type: "bio",
-      target_name: targetName,
-      action: `Изменил описание профиля участника "${targetName}"`,
+    if (rankChanged) {
+      addLog({
+        action_type: "rank",
+        target_name: targetName,
+        old_value: oldProfile.rank || "ГОСТЬ",
+        new_value: updatedProfile.rank || "ГОСТЬ",
+        action: `Изменил ранг участника "${targetName}": "${
+          oldProfile.rank || "ГОСТЬ"
+        }" → "${updatedProfile.rank || "ГОСТЬ"}"`,
+      });
+    }
+
+    if (accessChanged) {
+      addLog({
+        action_type: "access",
+        target_name: targetName,
+        old_value: oldProfile.access_role || "guest",
+        new_value: updatedProfile.access_role || "guest",
+        action: `Изменил доступ участника "${targetName}": "${
+          oldProfile.access_role || "guest"
+        }" → "${updatedProfile.access_role || "guest"}"`,
+      });
+    }
+
+    if (currencyChanged) {
+      if (body.reward_reason) {
+        addLog({
+          action_type: "reward",
+          target_name: targetName,
+          reward_reason: body.reward_reason,
+          steps_delta: stepsDiff,
+          moves_delta: movesDiff,
+          action: `Начислил награду "${body.reward_reason}" участнику "${targetName}": шаги ${formatDelta(
+            stepsDiff
+          )}, ходы ${formatDelta(movesDiff)}`,
+        });
+      } else {
+        addLog({
+          action_type: "currency",
+          target_name: targetName,
+          old_value: `Шаги ${oldSteps}, ходы ${oldMoves}`,
+          new_value: `Шаги ${newSteps}, ходы ${newMoves}`,
+          steps_delta: stepsDiff,
+          moves_delta: movesDiff,
+          action: `Вручную изменил валюту участника "${targetName}": шаги ${oldSteps} → ${newSteps}, ходы ${oldMoves} → ${newMoves}`,
+        });
+      }
+    }
+
+    if (oldProfile.bio !== updatedProfile.bio) {
+      addLog({
+        action_type: "bio",
+        target_name: targetName,
+        action: `Изменил описание профиля участника "${targetName}"`,
+      });
+    }
+
+    if (oldProfile.avatar_url !== updatedProfile.avatar_url) {
+      addLog({
+        action_type: "avatar",
+        target_name: targetName,
+        action: `Изменил аватар участника "${targetName}"`,
+      });
+    }
+
+    if (logs.length > 0) {
+      const { error: logsError } = await supabaseAdmin
+        .from("admin_logs")
+        .insert(logs);
+
+      if (logsError) {
+        console.error("Admin logs insert error:", logsError);
+      }
+    }
+
+    const notifications: string[] = [];
+
+    if (currencyChanged) {
+      const currencyLines: string[] = [];
+
+      if (stepsDiff !== 0) {
+        currencyLines.push(
+          `👣 Шаги: <b>${formatDelta(stepsDiff)}</b>`
+        );
+      }
+
+      if (movesDiff !== 0) {
+        currencyLines.push(
+          `♟ Ходы: <b>${formatDelta(movesDiff)}</b>`
+        );
+      }
+
+      const reasonText = body.reward_reason
+        ? `\n\nПричина: <b>${escapeTelegramHtml(
+            body.reward_reason
+          )}</b>`
+        : "";
+
+      notifications.push(
+        [
+          "🎁 <b>Ваш баланс изменён</b>",
+          "",
+          ...currencyLines,
+          reasonText,
+          "",
+          "<b>Текущий баланс:</b>",
+          `👣 ${newSteps.toLocaleString("ru-RU")} шагов`,
+          `♟ ${newMoves.toLocaleString("ru-RU")} ходов`,
+        ]
+          .filter(Boolean)
+          .join("\n")
+      );
+    }
+
+    if (rankChanged) {
+      notifications.push(
+        [
+          "🎖 <b>Ваш ранг изменён</b>",
+          "",
+          `Новый ранг:`,
+          `<b>${escapeTelegramHtml(
+            updatedProfile.rank || "ГОСТЬ"
+          )}</b>`,
+        ].join("\n")
+      );
+    }
+
+    if (positionChanged) {
+      notifications.push(
+        [
+          "💼 <b>Ваша должность изменена</b>",
+          "",
+          `Новая должность:`,
+          `<b>${escapeTelegramHtml(
+            updatedProfile.position || "Guest"
+          )}</b>`,
+        ].join("\n")
+      );
+    }
+
+    let notificationSent = false;
+
+    if (
+      notifications.length > 0 &&
+      oldProfile.telegram_id
+    ) {
+      const siteUrl =
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        process.env.SITE_URL ||
+        "";
+
+      const notificationText = notifications.join(
+        "\n\n━━━━━━━━━━━━━━\n\n"
+      );
+
+      const notificationResult = await sendTelegramMessage({
+        chatId: oldProfile.telegram_id,
+        text: notificationText,
+        button: siteUrl
+          ? {
+              text: "👤 Открыть профиль",
+              url: `${siteUrl}/profile`,
+            }
+          : undefined,
+      });
+
+      notificationSent = notificationResult.ok;
+    }
+
+    return NextResponse.json({
+      ok: true,
+      notificationSent,
     });
-  }
+  } catch (error) {
+    console.error("Update member error:", error);
 
-  if (oldProfile.avatar_url !== updateData.avatar_url) {
-    addLog({
-      action_type: "avatar",
-      target_name: targetName,
-      action: `Изменил аватар участника "${targetName}"`,
-    });
+    return NextResponse.json(
+      { error: "Произошла ошибка при сохранении участника." },
+      { status: 500 }
+    );
   }
-
-  if (logs.length > 0) {
-    await supabaseAdmin.from("admin_logs").insert(logs);
-  }
-
-  return NextResponse.json({ ok: true });
 }
