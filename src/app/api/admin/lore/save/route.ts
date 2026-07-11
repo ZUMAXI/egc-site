@@ -15,11 +15,16 @@ function getName(profile: any) {
   );
 }
 
-async function sendLoreBroadcast(chapter: {
-  title: string;
-  chapter_number: number;
-  is_finished: boolean;
-}) {
+type LoreNotificationType = "created" | "completed";
+
+async function sendLoreBroadcast(
+  chapter: {
+    title: string;
+    chapter_number: number;
+    is_finished: boolean;
+  },
+  notificationType: LoreNotificationType
+) {
   const { data: profiles, error } = await supabaseAdmin
     .from("profiles")
     .select("telegram_id")
@@ -58,19 +63,30 @@ async function sendLoreBroadcast(chapter: {
     process.env.SITE_URL ||
     "";
 
-  const text = [
-    "📖 <b>Новая глава лора EgC</b>",
-    "",
-    `<b>Глава ${chapter.chapter_number}: ${escapeTelegramHtml(
-      chapter.title
-    )}</b>`,
-    "",
-    chapter.is_finished
-      ? "✅ Глава полностью завершена."
-      : "🚧 Глава пока находится в разработке.",
-    "",
-    "Откройте приложение, чтобы прочитать продолжение истории.",
-  ].join("\n");
+  const text =
+    notificationType === "completed"
+      ? [
+          "✅ <b>Глава лора завершена</b>",
+          "",
+          `<b>Глава ${chapter.chapter_number}: ${escapeTelegramHtml(
+            chapter.title
+          )}</b>`,
+          "",
+          "Полная версия главы уже доступна в приложении EgC.",
+        ].join("\n")
+      : [
+          "📖 <b>Новая глава лора EgC</b>",
+          "",
+          `<b>Глава ${chapter.chapter_number}: ${escapeTelegramHtml(
+            chapter.title
+          )}</b>`,
+          "",
+          chapter.is_finished
+            ? "✅ Глава полностью завершена."
+            : "🚧 Глава пока находится в разработке.",
+          "",
+          "Откройте приложение, чтобы прочитать продолжение истории.",
+        ].join("\n");
 
   let sent = 0;
   let failed = 0;
@@ -82,10 +98,7 @@ async function sendLoreBroadcast(chapter: {
     index < telegramIds.length;
     index += batchSize
   ) {
-    const batch = telegramIds.slice(
-      index,
-      index + batchSize
-    );
+    const batch = telegramIds.slice(index, index + batchSize);
 
     const results = await Promise.all(
       batch.map((chatId) =>
@@ -121,8 +134,7 @@ async function sendLoreBroadcast(chapter: {
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    const telegramId =
-      cookieStore.get("egc_user")?.value;
+    const telegramId = cookieStore.get("egc_user")?.value;
 
     if (!telegramId) {
       return NextResponse.json(
@@ -135,22 +147,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const {
-      data: currentUser,
-      error: currentUserError,
-    } = await supabaseAdmin
-      .from("profiles")
-      .select(
-        `
+    const { data: currentUser, error: currentUserError } =
+      await supabaseAdmin
+        .from("profiles")
+        .select(
+          `
           id,
           nickname,
           telegram_name,
           telegram_username,
           access_role
         `
-      )
-      .eq("telegram_id", telegramId)
-      .maybeSingle();
+        )
+        .eq("telegram_id", telegramId)
+        .maybeSingle();
 
     if (currentUserError) {
       console.error(
@@ -160,8 +170,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(
         {
-          error:
-            "Не удалось проверить администратора.",
+          error: "Не удалось проверить администратора.",
         },
         {
           status: 500,
@@ -201,8 +210,7 @@ export async function POST(request: NextRequest) {
       body.chapter_number || 1
     );
 
-    const isFinished =
-      body.is_finished === true;
+    const isFinished = body.is_finished === true;
 
     if (!title) {
       return NextResponse.json(
@@ -215,10 +223,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (
-      !content ||
-      content === "<p></p>"
-    ) {
+    if (!content || content === "<p></p>") {
       return NextResponse.json(
         {
           error: "Добавь текст главы.",
@@ -235,8 +240,7 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json(
         {
-          error:
-            "Номер главы должен быть больше нуля.",
+          error: "Номер главы должен быть больше нуля.",
         },
         {
           status: 400,
@@ -252,6 +256,8 @@ export async function POST(request: NextRequest) {
     };
 
     const isEditing = Boolean(body.id);
+
+    let previousChapter: any = null;
     let savedChapter;
 
     if (isEditing) {
@@ -269,9 +275,47 @@ export async function POST(request: NextRequest) {
       }
 
       const {
-        data,
-        error,
+        data: oldChapter,
+        error: oldChapterError,
       } = await supabaseAdmin
+        .from("lore")
+        .select(
+          "id, title, chapter_number, is_finished"
+        )
+        .eq("id", chapterId)
+        .maybeSingle();
+
+      if (oldChapterError) {
+        console.error(
+          "Lore old chapter error:",
+          oldChapterError
+        );
+
+        return NextResponse.json(
+          {
+            error:
+              "Не удалось получить старые данные главы.",
+          },
+          {
+            status: 500,
+          }
+        );
+      }
+
+      if (!oldChapter) {
+        return NextResponse.json(
+          {
+            error: "Глава не найдена.",
+          },
+          {
+            status: 404,
+          }
+        );
+      }
+
+      previousChapter = oldChapter;
+
+      const { data, error } = await supabaseAdmin
         .from("lore")
         .update(loreData)
         .eq("id", chapterId)
@@ -279,15 +323,11 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (error) {
-        console.error(
-          "Lore update error:",
-          error
-        );
+        console.error("Lore update error:", error);
 
         return NextResponse.json(
           {
-            error:
-              "Не удалось обновить главу лора.",
+            error: "Не удалось обновить главу лора.",
             details: error.message,
           },
           {
@@ -298,25 +338,18 @@ export async function POST(request: NextRequest) {
 
       savedChapter = data;
     } else {
-      const {
-        data,
-        error,
-      } = await supabaseAdmin
+      const { data, error } = await supabaseAdmin
         .from("lore")
         .insert(loreData)
         .select("*")
         .single();
 
       if (error) {
-        console.error(
-          "Lore insert error:",
-          error
-        );
+        console.error("Lore insert error:", error);
 
         return NextResponse.json(
           {
-            error:
-              "Не удалось создать главу лора.",
+            error: "Не удалось создать главу лора.",
             details: error.message,
           },
           {
@@ -330,28 +363,31 @@ export async function POST(request: NextRequest) {
 
     const adminName = getName(currentUser);
 
-    const {
-      error: logError,
-    } = await supabaseAdmin
+    const chapterCompleted =
+      isEditing &&
+      previousChapter?.is_finished === false &&
+      isFinished === true;
+
+    const { error: logError } = await supabaseAdmin
       .from("admin_logs")
       .insert({
-        admin_profile_id:
-          currentUser.id || null,
+        admin_profile_id: currentUser.id || null,
         admin_name: adminName,
-        action_type: isEditing
-          ? "lore_update"
-          : "lore_create",
+        action_type: chapterCompleted
+          ? "lore_complete"
+          : isEditing
+            ? "lore_update"
+            : "lore_create",
         target_name: title,
-        action: isEditing
-          ? `Изменил главу лора "${title}"`
-          : `Создал главу лора "${title}"`,
+        action: chapterCompleted
+          ? `Завершил главу лора "${title}"`
+          : isEditing
+            ? `Изменил главу лора "${title}"`
+            : `Создал главу лора "${title}"`,
       });
 
     if (logError) {
-      console.error(
-        "Lore log error:",
-        logError
-      );
+      console.error("Lore log error:", logError);
     }
 
     let notification = {
@@ -360,32 +396,34 @@ export async function POST(request: NextRequest) {
       failed: 0,
     };
 
-    /*
-     * Рассылка выполняется только при создании
-     * новой главы.
-     *
-     * При редактировании существующей главы
-     * повторного уведомления не будет.
-     */
     if (!isEditing) {
-      notification =
-        await sendLoreBroadcast({
+      notification = await sendLoreBroadcast(
+        {
           title,
           chapter_number: chapterNumber,
           is_finished: isFinished,
-        });
+        },
+        "created"
+      );
+    } else if (chapterCompleted) {
+      notification = await sendLoreBroadcast(
+        {
+          title,
+          chapter_number: chapterNumber,
+          is_finished: true,
+        },
+        "completed"
+      );
     }
 
     return NextResponse.json({
       ok: true,
       chapter: savedChapter,
+      chapterCompleted,
       notification,
     });
   } catch (error) {
-    console.error(
-      "Save lore error:",
-      error
-    );
+    console.error("Save lore error:", error);
 
     return NextResponse.json(
       {
