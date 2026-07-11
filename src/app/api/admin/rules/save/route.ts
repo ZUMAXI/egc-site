@@ -14,16 +14,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: currentUser, error: userError } = await supabaseAdmin
-      .from("profiles")
-      .select(
-        "nickname, telegram_name, telegram_username, access_role"
-      )
-      .eq("telegram_id", telegramId)
-      .maybeSingle();
+    const { data: currentUser, error: userError } =
+      await supabaseAdmin
+        .from("profiles")
+        .select(
+          "nickname, telegram_name, telegram_username, access_role"
+        )
+        .eq("telegram_id", telegramId)
+        .maybeSingle();
 
     if (userError) {
-      console.error("Rules current user error:", userError);
+      console.error("Rules user error:", userError);
 
       return NextResponse.json(
         { error: "Не удалось проверить пользователя." },
@@ -46,14 +47,33 @@ export async function POST(request: NextRequest) {
     const title =
       typeof body.title === "string" ? body.title.trim() : "";
 
-    const content =
-      typeof body.content === "string" ? body.content.trim() : "";
+    const category =
+      typeof body.category === "string"
+        ? body.category.trim()
+        : "Правила";
 
-    const sortOrder = Number(body.sort_order || 1);
+    const content =
+      typeof body.content === "string"
+        ? body.content.trim()
+        : "";
+
+    const imageUrl =
+      typeof body.image_url === "string"
+        ? body.image_url.trim()
+        : "";
+
+    const orderNumber = Number(body.order_number || 1);
 
     if (!title) {
       return NextResponse.json(
         { error: "Укажи название правила." },
+        { status: 400 }
+      );
+    }
+
+    if (!category) {
+      return NextResponse.json(
+        { error: "Укажи категорию правила." },
         { status: 400 }
       );
     }
@@ -65,17 +85,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!Number.isFinite(sortOrder) || sortOrder < 1) {
+    if (
+      !Number.isFinite(orderNumber) ||
+      orderNumber < 1
+    ) {
       return NextResponse.json(
-        { error: "Порядок отображения должен быть больше нуля." },
+        { error: "Порядок должен быть больше нуля." },
         { status: 400 }
       );
     }
 
     const ruleData = {
       title,
+      category,
       content,
-      sort_order: sortOrder,
+      order_number: orderNumber,
+      image_url: imageUrl || null,
     };
 
     let savedRule;
@@ -139,7 +164,7 @@ export async function POST(request: NextRequest) {
       });
 
     if (logError) {
-      console.error("Rule admin log error:", logError);
+      console.error("Rule log error:", logError);
     }
 
     return NextResponse.json({

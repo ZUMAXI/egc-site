@@ -5,10 +5,14 @@ import SectionTitle from "../components/SectionTitle";
 export const dynamic = "force-dynamic";
 
 export default async function RulesPage() {
-  const { data: rules } = await supabase
+  const { data: rules, error } = await supabase
     .from("rules")
     .select("*")
-    .order("sort_order", { ascending: true });
+    .order("order_number", { ascending: true });
+
+  if (error) {
+    console.error("Rules page error:", error);
+  }
 
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
