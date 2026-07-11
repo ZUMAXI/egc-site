@@ -6,6 +6,7 @@ const nav = [
   { label: "Главная", href: "/" },
   { label: "Новости", href: "/news" },
   { label: "Участники", href: "/members" },
+  { label: "Рейтинг", href: "/leaderboard" },
   { label: "Лор", href: "/lore" },
   { label: "Союзы", href: "/allies" },
   { label: "Магазин", href: "/shop" },
@@ -24,14 +25,17 @@ export default async function SiteHeader() {
       .from("profiles")
       .select("access_role")
       .eq("telegram_id", telegramId)
-      .single();
+      .maybeSingle();
 
     accessRole = profile?.access_role || "guest";
   }
 
   return (
-    <header className="mx-auto mb-10 flex max-w-6xl flex-col gap-5 px-6 pt-6 md:flex-row md:items-center md:justify-between">
-      <Link href="/" className="text-xl font-bold tracking-wide text-white">
+    <header className="mx-auto mb-10 flex max-w-7xl flex-col gap-5 px-6 pt-6 md:flex-row md:items-center md:justify-between">
+      <Link
+        href="/"
+        className="w-fit text-xl font-bold tracking-wide text-white"
+      >
         ♟ EgC
       </Link>
 
@@ -40,7 +44,11 @@ export default async function SiteHeader() {
           <Link
             key={item.href}
             href={item.href}
-            className="rounded-full border border-white/10 bg-white/5 px-3 py-2 transition hover:bg-white/10 hover:text-white"
+            className={`rounded-full border px-3 py-2 transition ${
+              item.href === "/leaderboard"
+                ? "border-violet-500/20 bg-violet-500/10 text-violet-200 hover:bg-violet-500/20"
+                : "border-white/10 bg-white/5 hover:bg-white/10 hover:text-white"
+            }`}
           >
             {item.label}
           </Link>
