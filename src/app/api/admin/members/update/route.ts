@@ -6,6 +6,48 @@ import {
   sendTelegramMessage,
 } from "@/lib/telegramBot";
 
+const ranksOrder = [
+  "ГОСТЬ",
+  "ИС",
+  "Host • ⊹{ - •}",
+  "Clerk • ⊹{ - •}",
+  "Citizen • ⊹{C•1•}",
+  "Citizen • ⊹{C•2•}",
+  "Citizen • ⊹{C•3•}",
+  "Citizen • ⊹{C•4•}",
+  "Citizen • ⊹{C•5•}",
+  "Citizen • ⊹{C•6•}",
+  "Citizen • ⊹{C•7•}",
+  "Citizen • ⊹{C•8•}",
+  "Intern • ⊹{I•9•}",
+  "Intern • ⊹{I•10•}",
+  "Intern • ⊹{I•11•}",
+  "Intern • ⊹{I•12•}",
+  "Intern • ⊹{I•13•}",
+  "Intern • ⊹{I•14•}",
+  "Intern • ⊹{I•15•}",
+  "Intern • ⊹{I•16•}",
+  "Soldier • ⊹{S•17•}",
+  "Soldier • ⊹{S•18•}",
+  "Soldier • ⊹{S•19•}",
+  "Soldier • ⊹{S•20•}",
+  "Soldier • ⊹{S•21•}",
+  "Soldier • ⊹{S•22•}",
+  "Soldier • ⊹{S•23•}",
+  "Soldier • ⊹{S•24•}",
+  "Soldier • ⊹{S•25•}",
+  "Soldier • ⊹{S•26•}",
+  "Soldier • ⊹{S•27•}",
+  "Soldier • ⊹{S•28•}",
+  "The Lieutenant Colonel • ⊹{LC•29•}",
+  "The Lieutenant Colonel • ⊹{LC•30•}",
+  "The Lieutenant Colonel • ⊹{LC•31•}",
+  "The Lieutenant Colonel • ⊹{LC•32•}",
+  "The Lieutenant Colonel • ⊹{LC•33•}",
+  "The Lieutenant Colonel • ⊹{LC•34•}",
+  "The Lieutenant Colonel • ⊹{LC•35•}",
+];
+
 function getName(profile: any) {
   return (
     profile?.nickname ||
@@ -17,6 +59,10 @@ function getName(profile: any) {
 
 function formatDelta(value: number) {
   return `${value >= 0 ? "+" : ""}${value}`;
+}
+
+function getRankIndex(rank: string) {
+  return ranksOrder.indexOf(rank);
 }
 
 export async function POST(request: NextRequest) {
@@ -276,14 +322,37 @@ export async function POST(request: NextRequest) {
     }
 
     if (rankChanged) {
+      const oldRank = oldProfile.rank || "ГОСТЬ";
+      const newRank = updatedProfile.rank || "ГОСТЬ";
+
+      const oldRankIndex = getRankIndex(oldRank);
+      const newRankIndex = getRankIndex(newRank);
+
+      let rankTitle = "🎖 <b>Ваш ранг изменён</b>";
+
+      if (
+        oldRankIndex !== -1 &&
+        newRankIndex !== -1 &&
+        newRankIndex > oldRankIndex
+      ) {
+        rankTitle = "⬆️ <b>Ваш ранг повышен</b>";
+      } else if (
+        oldRankIndex !== -1 &&
+        newRankIndex !== -1 &&
+        newRankIndex < oldRankIndex
+      ) {
+        rankTitle = "⬇️ <b>Ваш ранг понижен</b>";
+      }
+
       notifications.push(
         [
-          "🎖 <b>Ваш ранг изменён</b>",
+          rankTitle,
           "",
-          `Новый ранг:`,
-          `<b>${escapeTelegramHtml(
-            updatedProfile.rank || "ГОСТЬ"
-          )}</b>`,
+          "Было:",
+          `<b>${escapeTelegramHtml(oldRank)}</b>`,
+          "",
+          "Стало:",
+          `<b>${escapeTelegramHtml(newRank)}</b>`,
         ].join("\n")
       );
     }
@@ -293,7 +362,12 @@ export async function POST(request: NextRequest) {
         [
           "💼 <b>Ваша должность изменена</b>",
           "",
-          `Новая должность:`,
+          "Было:",
+          `<b>${escapeTelegramHtml(
+            oldProfile.position || "Guest"
+          )}</b>`,
+          "",
+          "Стало:",
           `<b>${escapeTelegramHtml(
             updatedProfile.position || "Guest"
           )}</b>`,
