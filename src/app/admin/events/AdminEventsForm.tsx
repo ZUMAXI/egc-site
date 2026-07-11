@@ -3,6 +3,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import ConfirmDialog from "../components/ConfirmDialog";
+import RichTextEditor from "../../components/RichTextEditor";
 
 export default function AdminEventsForm({ events }: { events: any[] }) {
   const [items, setItems] = useState(events);
@@ -34,6 +35,11 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
     setRewardMoves(item.reward_moves || 0);
     setDescription(item.description || "");
     setImageUrl(item.image_url || "");
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   function clearForm() {
@@ -91,6 +97,16 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
   async function saveEvent() {
     if (saving || uploading) return;
 
+    if (!title.trim()) {
+      toast.error("Укажи название события.");
+      return;
+    }
+
+    if (!description.trim() || description === "<p></p>") {
+      toast.error("Добавь описание события.");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -116,16 +132,19 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
 
       const data = await res.json().catch(() => null);
 
-      if (res.ok) {
-        toast.success(editing ? "Событие сохранено!" : "Событие создано!");
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 800);
-      } else {
+      if (!res.ok) {
         toast.error(data?.error || "Не удалось сохранить событие.");
         setSaving(false);
+        return;
       }
+
+      toast.success(
+        editing ? "Событие сохранено!" : "Событие создано!"
+      );
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     } catch {
       toast.error("Ошибка при сохранении события.");
       setSaving(false);
@@ -135,22 +154,33 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
   async function deleteEvent() {
     if (deleteId === null) return;
 
-    const res = await fetch("/api/admin/events/delete", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id: deleteId }),
-    });
+    try {
+      const res = await fetch("/api/admin/events/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: deleteId }),
+      });
 
-    if (res.ok) {
-      setItems((prev) => prev.filter((item) => item.id !== deleteId));
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        toast.error(data?.error || "Не удалось удалить событие.");
+        setDeleteId(null);
+        return;
+      }
+
+      setItems((prev) =>
+        prev.filter((item) => item.id !== deleteId)
+      );
+
       toast.success("Событие удалено.");
-    } else {
-      toast.error("Не удалось удалить событие.");
+      setDeleteId(null);
+    } catch {
+      toast.error("Ошибка при удалении события.");
+      setDeleteId(null);
     }
-
-    setDeleteId(null);
   }
 
   return (
@@ -292,7 +322,9 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
 
           {imageUrl ? (
             <div className="grid gap-3">
-              <span className="text-sm text-zinc-400">Предпросмотр</span>
+              <span className="text-sm text-zinc-400">
+                Предпросмотр
+              </span>
 
               <img
                 src={imageUrl}
@@ -302,13 +334,17 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
             </div>
           ) : null}
 
-          <textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="Описание события"
-            rows={7}
-            className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
-          />
+          <div className="grid gap-2">
+            <span className="text-sm text-zinc-400">
+              Описание события
+            </span>
+
+            <RichTextEditor
+              value={description}
+              onChange={setDescription}
+              placeholder="Напиши описание события..."
+            />
+          </div>
 
           <div className="flex flex-wrap gap-3">
             <button
@@ -359,9 +395,35 @@ export default function AdminEventsForm({ events }: { events: any[] }) {
                 {item.status || "Скоро"}
               </p>
 
-              <p className="mt-4 line-clamp-3 whitespace-pre-line text-zinc-300">
-                {item.description}
-              </p>
+              <div
+                className={[
+                  "mt-4 line-clamp-4 text-zinc-300",
+                  "[&_p]:my-2",
+                  "[&_h1]:text-3xl",
+                  "[&_h1]:font-black",
+                  "[&_h2]:text-2xl",
+                  "[&_h2]:font-black",
+                  "[&_h3]:text-xl",
+                  "[&_h3]:font-bold",
+                  "[&_strong]:font-bold",
+                  "[&_em]:italic",
+                  "[&_u]:underline",
+                  "[&_s]:line-through",
+                  "[&_ul]:list-disc",
+                  "[&_ul]:pl-6",
+                  "[&_ol]:list-decimal",
+                  "[&_ol]:pl-6",
+                  "[&_blockquote]:border-l-4",
+                  "[&_blockquote]:border-white/20",
+                  "[&_blockquote]:pl-4",
+                  "[&_blockquote]:italic",
+                  "[&_a]:text-blue-400",
+                  "[&_a]:underline",
+                ].join(" ")}
+                dangerouslySetInnerHTML={{
+                  __html: item.description || "",
+                }}
+              />
 
               <div className="mt-4 flex flex-wrap gap-3 text-sm">
                 <span className="rounded-full bg-white/10 px-3 py-1">
